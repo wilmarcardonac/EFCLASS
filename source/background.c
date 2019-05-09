@@ -81,7 +81,8 @@
 #include "background.h"
 #include <stdio.h>
 #include <math.h>
-/*#include <gsl/gsl_sf_hyperg.h>*/
+#include <gsl/gsl_sf_hyperg.h>
+#include <gsl/gsl_sf_bessel.h>
 
 /**
  * Background quantities at given conformal time tau.
@@ -463,10 +464,16 @@ int background_indices(
 	{
 	  if (pba->b_pi != 0.)
 	    {
-	      pba->has_fR = _TRUE_;
-	      printf("RUNNING DESIGNER MODEL WITH w=-1 \n");
-	      printf("DESIGNER MODEL COMMENTED OUT TEMPORALY \n");
-	      exit(1);
+	      if ( (pba->c0_des != 0.) || (pba->j0_des != 0.) )
+		{
+		  pba->has_fR = _TRUE_;
+		  printf("RUNNING HORNDESKI DESIGNER MODEL WITH w=-1 \n");
+		}
+	      else
+		{
+		  pba->has_fR = _TRUE_;
+		  printf("RUNNING f(R) DESIGNER MODEL WITH w=-1 \n");
+		}
 	    }
 	  if (pba->bhs != 0.)
 	    {
@@ -1277,6 +1284,9 @@ int background_ncdm_momenta(
   double epsilon;
   double q2;
   double factor2;
+  double density_neutrino_at_a() ;
+  double pressure_neutrino_at_a();
+  double x,y;
 
   /** - rescale normalization at given redshift */
   factor2 = factor*pow(1+z,4);
@@ -1312,8 +1322,90 @@ int background_ncdm_momenta(
   if (drho_dM!=NULL) *drho_dM *= factor2;
   if (pseudo_p!=NULL) *pseudo_p *=factor2;
 
+  x = density_neutrino_at_a(1./(1.+z),M);
+  y = pressure_neutrino_at_a(1./(1.+z),M);
+  printf("rho_nu = %1.12e p_nu = %1.12e at a = %1.12e \n",x,y,1./(1.+z));
+  //printf("p_nu = %e at a = %e \n",y,1./(1.+z));
+  exit(1);
   return _SUCCESS_;
 }
+
+/* MODIFICATIONS INTRODUCED TO AVOID NUMERICAL INTEGRATION WITH WEIGHTS */
+
+double density_neutrino_at_a(double a,double m)
+{
+  double result;
+  //double z_nu;
+  int index_sum;
+  int index_sum_max = 5;
+  double Tnu_0;
+  double Bessel0,Bessel1;
+  double Struve1, Struve0;
+  double struve();
+  double param0,param1;
+  double g,x,y ; 
+
+  Tnu_0 = 2.726*pow(4./11.,1./3.)*_k_B_/1.6e-19; // T_ncdm in eV
+  y = 1./Tnu_0;
+  result = 0.;
+  param0 = 0.;
+  param1 = 1.;
+  g = 2.;
+
+  for (index_sum=1;index_sum<index_sum_max;index_sum++)
+    {
+      //z_nu = pow(index_sum*a*m/2./Tnu_0,2);
+      x = 1./Tnu_0; //2.131330993153e6 ;//index_sum*a*m/Tnu_0;
+      Bessel0 = gsl_sf_bessel_Y0(1./Tnu_0);
+      Bessel1 = gsl_sf_bessel_Y1(x);
+      Struve0 = struve(param0,x);
+      Struve1 = struve(param1,x);
+      printf("Y0 = %1.12e  Y1 = %1.12e H0 = %1.12e  H1 = %1.12e at x = %1.12e \n",Bessel0,Bessel1,Struve0,Struve1,y);
+      result += pow(-1.,index_sum)/pow(x,3)*( -pow(x,2) + 3.*_PI_*x*( Struve0 - Bessel0 )/2. + _PI_*(3. - pow(x,2)/2.)*(Bessel1 - Struve1) );
+    }
+  result = 8*_PI_*_G_/3.*g*pow(m,4)*result/2./pow(_PI_,2);
+  
+  return result;
+}
+
+double pressure_neutrino_at_a(double a,double m)
+{
+  double result;
+  //double z_nu;
+  int index_sum;
+  int index_sum_max = 10000;
+  double Tnu_0;
+  double Bessel2;
+  double Struve1, Struve0;
+  double struve();
+  //double yn();
+  double param0,param1;
+  double g,x; 
+  int n = 2;
+
+  Tnu_0 = 2.726*pow(4./11.,1./3.)*_k_B_/1.6e-19; // T_ncdm in eV
+  result = 0.;
+  param0 = 0.;
+  param1 = 1.;
+  g = 2.;
+
+  for (index_sum=1;index_sum<index_sum_max;index_sum++)
+    {
+      //z_nu = pow(index_sum*a*m/2./Tnu_0,2);
+      x = index_sum*a*m/Tnu_0 ; 
+      //  y = yn(n,x);
+      Bessel2 = gsl_sf_bessel_Yn(n,x);
+      Struve0 = struve(param0,x);
+      Struve1 = struve(param1,x);
+      //printf("Y2 = %1.12e  H0 = %e H1 = %e at x = %1.12e \n",Bessel2,Struve0,Struve1,x);
+      result += pow(-1.,index_sum+1)/pow(x,3)*( pow(x,2) + _PI_*( pow(x,2) - 3.)*( x*(Bessel2 + Struve0)/2. - Struve1 ));
+    }
+  result = 8*_PI_*_G_/3.*g*pow(m,4)*8.*result/48./pow(_PI_,2);
+  
+  return result;
+}
+
+/* MODIFICATIONS END */
 
 /**
  * When the user passed in input the density fraction Omeha_ncdm or

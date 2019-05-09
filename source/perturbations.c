@@ -4324,7 +4324,8 @@ int perturb_einstein(
   double k2,a,a2,a_prime_over_a;
   double s2_squared;
   double shear_g = 0.;
-  double pi_fR,V_fR;
+  double pi_fR,V_fR,om;
+  double n = 1.;
 
   /** - wavenumber and scale factor related quantities */
 
@@ -4333,6 +4334,7 @@ int perturb_einstein(
   a2 = a * a;
   a_prime_over_a = ppw->pvecback[pba->index_bg_H]*a;
   s2_squared = 1.-3.*pba->K/k2;
+  om = pba->Omega0_cdm + pba->Omega0_b;
 
   /* sum up perturbations from all species */
   class_call(perturb_total_stress_energy(ppr,pba,pth,ppt,index_md,k,y,ppw),
@@ -4364,8 +4366,15 @@ int perturb_einstein(
 	{
 	  //	  pi_fR = k2*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR]/(1. + 3.*k2*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR]    )/ppw->pvecback[pba->index_bg_F_fR]*ppw->pvecback[pba->index_bg_Omega_m]/pba->Omega0_lambda*ppw->delta_m;
 
-	  pi_fR = k2*pow(2997.92458/pba->h,2.)*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR]/(1. + 3.*k2*pow(2997.92458/pba->h,2)*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR])/ppw->pvecback[pba->index_bg_F_fR]*(pba->Omega0_b*y[ppw->pv->index_pt_delta_b] + pba->Omega0_cdm*y[ppw->pv->index_pt_delta_cdm]  )   ;
-	  
+	  if ( (pba->c0_des != 0.) || (pba->j0_des != 0.) )
+	    {
+	      pi_fR = 0.;
+	    }
+	  else
+	    {
+	      pi_fR = k2*pow(2997.92458/pba->h,2.)*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR]/(1. + 3.*k2*pow(2997.92458/pba->h,2)*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR])/ppw->pvecback[pba->index_bg_F_fR]*(pba->Omega0_b*y[ppw->pv->index_pt_delta_b] + pba->Omega0_cdm*y[ppw->pv->index_pt_delta_cdm]  )   ;
+	    }
+
 	  //	  ppw->pvecmetric[ppw->index_mt_psi] = y[ppw->pv->index_pt_phi] - 4.5 * (a2/k2) * (ppw->rho_plus_p_shear + 2./3.*ppw->pvecback[pba->index_bg_rho_lambda]*pi_fR )  ;
 	  ppw->pvecmetric[ppw->index_mt_psi] = y[ppw->pv->index_pt_phi] - 4.5 * (a2/k2) * ppw->rho_plus_p_shear - 3.*(a2/k2/pow(2997.92458/pba->h,2.))*pi_fR   ;
 	  //printf("scale factor = %.5e anisotropic stress = %.5e  psi = %.5e  F = %.5e  FR = %.5e\n",a,pi_fR,ppw->pvecmetric[ppw->index_mt_psi],ppw->pvecback[pba->index_bg_F_fR],ppw->pvecback[pba->index_bg_FR_fR]);
@@ -4387,7 +4396,17 @@ int perturb_einstein(
 	{
 	  //	  V_fR = ppw->pvecback[pba->index_bg_Fprime_fR]*a*a_prime_over_a*(1. + 6.*k2*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR])/(1. + 3.*k2*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR] )/2./ppw->pvecback[pba->index_bg_F_fR]*ppw->pvecback[pba->index_bg_Omega_m]/pba->Omega0_lambda*ppw->delta_m;
 
-	  V_fR = ppw->pvecback[pba->index_bg_Fprime_fR]*a*a_prime_over_a*(1. + 6.*k2*pow(2997.92458/pba->h,2)*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR])/(1. + 3.*k2*pow(2997.92458/pba->h,2)*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR] )/2./ppw->pvecback[pba->index_bg_F_fR]*(pba->Omega0_b*y[ppw->pv->index_pt_delta_b] + pba->Omega0_cdm*y[ppw->pv->index_pt_delta_cdm]  ); 
+	  if ( (pba->c0_des != 0.) || (pba->j0_des != 0.) )
+	    {
+	      V_fR = pba->H0*((-16*pow(a,2)*sqrt(pba->c0_des)*pba->H0*pow(pba->j0_des,2)*k2*pow(2997.92458/pba->h,2)*n*sqrt(1 + (-1 + pow(a,-3))*om)*(2*pow(a,3)*pow(k2,2)*pow(2997.92458/pba->h,4)*(-1 + om) + pow(k2,2)*pow(2997.92458/pba->h,4)*om + 27*pow(a,2)*pow(pba->H0,2)*k2*pow(2997.92458/pba->h,2)*(-1 + om)*om))/(2*a*pba->j0_des*pow(k,6)*pow(2997.92458/pba->h,6)*n*(16*sqrt(pba->c0_des)*pba->j0_des*(-(pow(a,3)*(-1 + om)) + om) + 3*sqrt(2)*pow(pba->H0,2 + n/2.)*n*om*pow(1 + (-1 + pow(a,-3))*om,n/4.)*(4*pow(a,3)*(-1 + om) + (2 - 3*n)*om)) + 3*pow(pba->H0,2)*pba->j0_des*pow(k,4)*pow(2997.92458/pba->h,4)*(-2*sqrt(pba->c0_des)*pba->j0_des*(16 - 28*n + 9*pow(n,3))*pow(om,2) - 6*sqrt(2)*pow(pba->H0,2 + n/2.)*pow(n,2)*(-2 + 3*n)*pow(om,3)*pow(1 + (-1 + pow(a,-3))*om,n/4.) + 16*pow(a,6)*pow(-1 + om,2)*(-4*sqrt(pba->c0_des)*pba->j0_des*(2 + n) + 3*sqrt(2)*pow(pba->H0,2 + n/2.)*pow(n,2)*om*pow(1 + (-1 + pow(a,-3))*om,n/4.)) + 4*pow(a,3)*(-1 + om)*om*(2*sqrt(pba->c0_des)*pba->j0_des*(20 + n*(-8 + 9*n)) - 3*sqrt(2)*pow(pba->H0,2 + n/2.)*pow(n,2)*(-4 + 3*n)*om*pow(1 + (-1 + pow(a,-3))*om,n/4.)))))*(pba->Omega0_b*y[ppw->pv->index_pt_delta_b] + pba->Omega0_cdm*y[ppw->pv->index_pt_delta_cdm]  )   ;
+	      //printf("QUANTITIES: \n");
+	      //printf("c0_des = %.5e  j0_des = %.5e  V_fR = %.5e \n",pba->c0_des,pba->j0_des,V_fR);
+	      //exit(1);
+	    }
+	  else
+	    {
+	      V_fR = ppw->pvecback[pba->index_bg_Fprime_fR]*a*a_prime_over_a*(1. + 6.*k2*pow(2997.92458/pba->h,2)*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR])/(1. + 3.*k2*pow(2997.92458/pba->h,2)*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR] )/2./ppw->pvecback[pba->index_bg_F_fR]*(pba->Omega0_b*y[ppw->pv->index_pt_delta_b] + pba->Omega0_cdm*y[ppw->pv->index_pt_delta_cdm]  ); 
+	    }
 
 	  //ppw->pvecmetric[ppw->index_mt_phi_prime] = -a_prime_over_a * ppw->pvecmetric[ppw->index_mt_psi] + 1.5 * (a2/k2) * (ppw->rho_plus_p_theta + ppw->pvecback[pba->index_bg_rho_lambda]*V_fR);
 	  ppw->pvecmetric[ppw->index_mt_phi_prime] = -a_prime_over_a * ppw->pvecmetric[ppw->index_mt_psi] + 1.5 * (a2/k2) * ppw->rho_plus_p_theta + 1.5*(a2/k2/pow(2997.92458/pba->h,2))*V_fR;

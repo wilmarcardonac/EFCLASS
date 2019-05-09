@@ -61,6 +61,8 @@ struct background
 
   double b_pi; /* Dark Energy Anisotropic stress parameter for designer model w = -1 */
   double bhs; /* PARAMETER IN THE HU-SAWICKY MODEL WITH SAVVAS' PARAMETRISATION */
+  double c0_des; /* Dark Energy Anisotropic stress parameter for HORNDESKI designer model w = -1 */
+  double j0_des; /* Dark Energy Anisotropic stress parameter for HORNDESKI designer model w = -1 */
 
   double Omega0_ur; /**< \f$ \Omega_{0 \nu r} \f$ : ultra-relativistic neutrinos */
 

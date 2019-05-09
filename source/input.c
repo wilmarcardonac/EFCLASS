@@ -516,6 +516,8 @@ int input_init(
     pba->Omega0_lambda = 1.-pba->Omega0_k-pba->Omega0_g-pba->Omega0_ur-pba->Omega0_b-pba->Omega0_cdm-pba->Omega0_ncdm_tot;
     class_read_double("b_pi",pba->b_pi);
     class_read_double("bhs",pba->bhs);
+    class_read_double("c0_des",pba->c0_des);
+    class_read_double("j0_des",pba->j0_des);
   }
   else {
     if (flag1 == _TRUE_) {
@@ -523,12 +525,16 @@ int input_init(
       pba->Omega0_fld = 1. - pba->Omega0_k - param1 - Omega_tot;
       class_read_double("b_pi",pba->b_pi);
       class_read_double("bhs",pba->bhs);
+      class_read_double("c0_des",pba->c0_des);
+      class_read_double("j0_des",pba->j0_des);
     }
     if (flag2 == _TRUE_) {
       pba->Omega0_lambda= 1. - pba->Omega0_k - param2 - Omega_tot;
       pba->Omega0_fld = param2;
       class_read_double("b_pi",pba->b_pi);
       class_read_double("bhs",pba->bhs);
+      class_read_double("c0_des",pba->c0_des);
+      class_read_double("j0_des",pba->j0_des);
     }
   }
 
@@ -2115,6 +2121,8 @@ int input_default_params(
   pba->cs2_fld=1.;
   pba->b_pi=0.; 
   pba->bhs=0.;
+  pba->c0_des=0.; 
+  pba->j0_des=0.; 
 
   /** - thermodynamics structure */
 
