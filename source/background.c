@@ -454,15 +454,16 @@ int background_indices(
     {
       pba->has_lambda = _TRUE_;
       printf("Omega0_lambda IS = %.5e\n",pba->Omega0_lambda);
-      if ( (pba->b_pi != 0.) && (pba->bhs != 0.) )
+      if ( (pba->log10b_pi != -1e2) && (pba->bhs != 0.) )
 	{
 	  printf("ONE CAN ONLY GIVE b_pi OR bhs \n");
 	  exit(1);
 	}
       else
 	{
-	  if (pba->b_pi != 0.)
+	  if (pba->log10b_pi != -1e2)
 	    {
+	      pba->b_pi = -pow(10.,pba->log10b_pi);
 	      pba->has_fR = _TRUE_;
 	      printf("RUNNING DESIGNER MODEL WITH w=-1 \n");
 	      /*printf("DESIGNER MODEL COMMENTED OUT TEMPORALY \n");

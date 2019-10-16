@@ -60,6 +60,7 @@ struct background
 		     newtonian gauge!!!) */
 
   double b_pi; /* fR0HS PARAMETER FOR DESIGNER MODEL w = -1 */
+  double log10b_pi; /* LOG10 ABSOLUTE VALUE OF fR0HS. PARAMETER FOR DESIGNER MODEL w = -1 */
   double bhs; /* PARAMETER IN THE HU-SAWICKY MODEL WITH SAVVAS' PARAMETRISATION */
 
   double Omega0_ur; /**< \f$ \Omega_{0 \nu r} \f$ : ultra-relativistic neutrinos */

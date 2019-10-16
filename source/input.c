@@ -514,20 +514,20 @@ int input_init(
 
   if ((flag1 == _FALSE_) && (flag2 == _FALSE_)) {
     pba->Omega0_lambda = 1.-pba->Omega0_k-pba->Omega0_g-pba->Omega0_ur-pba->Omega0_b-pba->Omega0_cdm-pba->Omega0_ncdm_tot;
-    class_read_double("b_pi",pba->b_pi);
+    class_read_double("log10b_pi",pba->log10b_pi);
     class_read_double("bhs",pba->bhs);
   }
   else {
     if (flag1 == _TRUE_) {
       pba->Omega0_lambda= param1;
       pba->Omega0_fld = 1. - pba->Omega0_k - param1 - Omega_tot;
-      class_read_double("b_pi",pba->b_pi);
+      class_read_double("log10b_pi",pba->log10b_pi);
       class_read_double("bhs",pba->bhs);
     }
     if (flag2 == _TRUE_) {
       pba->Omega0_lambda= 1. - pba->Omega0_k - param2 - Omega_tot;
       pba->Omega0_fld = param2;
-      class_read_double("b_pi",pba->b_pi);
+      class_read_double("log10b_pi",pba->log10b_pi);
       class_read_double("bhs",pba->bhs);
     }
   }
@@ -2113,7 +2113,8 @@ int input_default_params(
   pba->w0_fld=-1.;
   pba->wa_fld=0.;
   pba->cs2_fld=1.;
-  pba->b_pi=0.; 
+  pba->b_pi=0.;
+  pba->log10b_pi=-1e2;
   pba->bhs=0.;
 
   /** - thermodynamics structure */
