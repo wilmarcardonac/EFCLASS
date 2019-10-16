@@ -51,12 +51,12 @@ CCFLAG += -D__CLASSDIR__='"$(MDIR)"'
 
 # where to find include files *.h
 INCLUDES = -I../include
-#<<<<<<< HEAD
+# PATHS IN HYDRA
 INCLUDES += -I/opt/ohpc/pub/libs/gnu/gsl/1.16/include ##WC
 LDFLAG += -L/opt/ohpc/pub/libs/gnu/gsl/1.16/lib -lgsl -lgslcblas
-#=======
-#INCLUDES += -I/usr/local/include ##WC
-#LDFLAG += -L/usr/local/lib 
+# PATHS IN MY LOCAL MACHINE
+#INCLUDES += -I/usr/local/include/gsl ##WC
+#LDFLAG += -L/usr/local/lib -lgsl -lgslcblas 
 #>>>>>>> 4e3dc2a532559db7be0ddcfb1dc5d4a5ec1dd2da
 #LIBDIR = /usr/local/lib              ##WC  
 #LIB_FL = -L$(LIBDIR) -lgsl -lgslcblas -lm  ##WC
