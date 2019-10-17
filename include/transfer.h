@@ -25,7 +25,7 @@
  * Wavenumbers are called q in this module and k in the perturbation
  * module. In flat universes k=q. In non-flat universes q and k differ
  * through q2 = k2 + K(1+m), where m=0,1,2 for scalar, vector,
- * tensor. q should be used throughout the transfer module, excepted
+ * tensor. q should be used throughout the transfer module, except
  * when interpolating or manipulating the source functions S(k,tau)
  * calculated in the perturbation module: for a given value of q, this
  * should be done at the corresponding k(q).
@@ -38,7 +38,7 @@
 struct transfers {
 
   /** @name - input parameters initialized by user in input module
-   *  (all other quantitites are computed in this module, given these
+   *  (all other quantities are computed in this module, given these
    *  parameters and the content of previous structures) */
 
   //@{
@@ -47,37 +47,30 @@ struct transfers {
                           exceptionally to rescale by hand the CMB
                           lensing potential */
   double lcmb_tilt;    /**< normally set to zero, can be used
-                          excelptionally to tilt by hand the CMB
+                          exceptionally to tilt by hand the CMB
                           lensing potential */
   double lcmb_pivot;   /**< if lcmb_tilt non-zero, corresponding pivot
                           scale */
 
-  double selection_bias[_SELECTION_NUM_MAX_];         /**< light-to-mass bias in the transfer function of density number count */
-  double nc_bias_b0;         /**< Constant rescaling of the density transfer function, which may serve as normalization of sources bias at z=0 (e.g., b(z)=b0*sqrt(1+z)) */
+  double selection_bias[_SELECTION_NUM_MAX_];               /**< light-to-mass bias in the transfer function of density number count */
   double selection_magnification_bias[_SELECTION_NUM_MAX_]; /**< magnification bias in the transfer function of density number count */
-  double lensing_convergence_rescale;   /**< constant rescaling to the number counts lensing convergence term */
 
-  short has_nz_file;    /**< Has dN/dz (selection function) input file? */
-  short has_nz_analytic_euclid; /**< Use analytic form for dN/dz (selection function) distribution? */
-  short has_nz_analytic_ska;
+  short has_nz_file;     /**< Has dN/dz (selection function) input file? */
+  short has_nz_analytic; /**< Use analytic form for dN/dz (selection function) distribution? */
   FileName nz_file_name; /**< dN/dz (selection function) input file name */
-  int nz_size;
-  double * nz_z;
-  double * nz_nz;
-  double * nz_ddnz;
+  int nz_size;           /**< number of redshift values in input tabulated selection function */
+  double * nz_z;         /**< redshift values in input tabulated selection function */
+  double * nz_nz;        /**< input tabulated values of selection function */
+  double * nz_ddnz;      /**< second derivatives in splined selection function*/
 
-  short has_nz_evo_file;    /**< Has dN/dz (evolution function) input file? */
-  short has_nz_evo_analytic_euclid; /**< Use analytic form for dN/dz (evolution function) distribution? */
-  short has_nz_evo_analytic_ska;
-  FileName nz_evo_file_name; /**< dN/dz (evolution function) input file name */
-  int nz_evo_size;
-  double * nz_evo_z;
-  double * nz_evo_nz;
-  double * nz_evo_dlog_nz;
-  double * nz_evo_dd_dlog_nz;
-
-  short has_el_number_count;          /**< do we need El's for density number count? */
-  double err_El;	/**< Max error fraction on number counts Cl's*/
+  short has_nz_evo_file;      /**< Has dN/dz (evolution function) input file? */
+  short has_nz_evo_analytic;  /**< Use analytic form for dN/dz (evolution function) distribution? */
+  FileName nz_evo_file_name;  /**< dN/dz (evolution function) input file name */
+  int nz_evo_size;            /**< number of redshift values in input tabulated evolution function */
+  double * nz_evo_z;          /**< redshift values in input tabulated evolution function */
+  double * nz_evo_nz;         /**< input tabulated values of evolution function */
+  double * nz_evo_dlog_nz;    /**< log of tabulated values of evolution function */
+  double * nz_evo_dd_dlog_nz; /**< second derivatives in splined log of evolution function */
 
   //@}
 
@@ -104,7 +97,7 @@ struct transfers {
   int index_tt_density; /**< index for first bin of transfer type = matter density */
   int index_tt_lensing; /**< index for first bin of transfer type = galaxy lensing */
 
-  int index_tt_rsd;     /**< index for first bin of transfer type = redshift space distorsion of number count */
+  int index_tt_rsd;     /**< index for first bin of transfer type = redshift space distortion of number count */
   int index_tt_d0;      /**< index for first bin of transfer type = doppler effect for of number count (j=0 term) */
   int index_tt_d1;      /**< index for first bin of transfer type = doppler effect for of number count (j=1 term) */
   int index_tt_nc_lens; /**< index for first bin of transfer type = lensing for of number count */
@@ -140,13 +133,13 @@ struct transfers {
 
   //@{
 
-  int q_size; /**< number of wavenumber values */
+  size_t q_size; /**< number of wavenumber values */
 
   double * q;  /**< list of wavenumber values, q[index_q] */
 
   double ** k; /**< list of wavenumber values for each requested mode, k[index_md][index_q]. In flat universes k=q. In non-flat universes q and k differ through q2 = k2 + K(1+m), where m=0,1,2 for scalar, vector, tensor. q should be used throughout the transfer module, excepted when interpolating or manipulating the source functions S(k,tau): for a given value of q this should be done in k(q). */
 
-  int index_q_flat_approximation; /**< index of the first q value using the flat rscaling approximation */
+  int index_q_flat_approximation; /**< index of the first q value using the flat rescaling approximation */
 
   //@}
 
@@ -188,7 +181,7 @@ struct transfer_workspace {
 
   int HIS_allocated; /**< flag specifying whether the previous structure has been allocated */
 
-  HyperInterpStruct * pBIS;
+  HyperInterpStruct * pBIS;  /**< pointer to structure containing all the spherical bessel functions of the flat case (used even in the non-flat case, for approximation schemes). pBIS = pointer to Bessel Interpolation Structure. */
 
   int l_size;        /**< number of l values */
 
@@ -200,23 +193,23 @@ struct transfer_workspace {
 
   int tau_size;                  /**< number of discrete time values for a given type */
   int tau_size_max;              /**< maximum number of discrete time values for all types */
-  double * interpolated_sources; /**< interpolated_sources[index_tau]
-                                    : sources interpolated from the
+  double * interpolated_sources; /**< interpolated_sources[index_tau]: 
+                                    sources interpolated from the
                                     perturbation module at the right
                                     value of k */
-  double * sources;              /**< sources[index_tau] : sources
+  double * sources;              /**< sources[index_tau]: sources
                                     used in transfer module, possibly
                                     differing from those in the
                                     perturbation module by some
-                                    reampling or rescaling */
-  double * tau0_minus_tau;       /**< tau0_minus_tau[index_tau] : values of (tau0 - tau) */
-  double * w_trapz;              /**< w_trapz[index_tau] : values of weights in trapezoidal integration (related to time steps) */
-  double * chi;                  /**< chi[index_tau] : value of argument of bessel
+                                    resampling or rescaling */
+  double * tau0_minus_tau;       /**< tau0_minus_tau[index_tau]: values of (tau0 - tau) */
+  double * w_trapz;              /**< w_trapz[index_tau]: values of weights in trapezoidal integration (related to time steps) */
+  double * chi;                  /**< chi[index_tau]: value of argument of bessel
                                     function: k(tau0-tau) (flat case)
                                     or sqrt(|K|)(tau0-tau) (non-flat
                                     case) */
-  double * cscKgen;              /**< cscKgen[index_tau] : useful trigonometric function */
-  double * cotKgen;              /**< cotKgen[index_tau] : useful trigonometric function */
+  double * cscKgen;              /**< cscKgen[index_tau]: useful trigonometric function */
+  double * cotKgen;              /**< cotKgen[index_tau]: useful trigonometric function */
 
   //@}
 
@@ -229,12 +222,12 @@ struct transfer_workspace {
 
   //@}
 
-  double tau0_minus_tau_cut;
-  short neglect_late_source;
+  double tau0_minus_tau_cut; /**< critical value of (tau0-tau) in time cut approximation for the wavenumber at hand */
+  short neglect_late_source; /**< flag stating whether we use the time cut approximation for the wavenumber at hand */
 };
 
 /**
- * enumeration of possible source types. This looks redundent with
+ * enumeration of possible source types. This looks redundant with
  * respect to the definition of indices index_tt_... This definition is however
  * convenient and time-saving: it allows to use a "case" statement in
  * transfer_radial_function()
@@ -256,7 +249,7 @@ typedef enum {SCALAR_TEMPERATURE_0,
 enum Hermite_Interpolation_Order {HERMITE3, HERMITE4, HERMITE6};
 
 /*************************************************************************************************************/
-
+/* @cond INCLUDE_WITH_DOXYGEN */
 /*
  * Boilerplate for C++
  */
@@ -546,14 +539,12 @@ extern "C" {
                          );
 
   int transfer_limber(
-                      int tau_size,
                       struct transfers * ptr,
+                      struct transfer_workspace * ptw,
                       int index_md,
                       int index_q,
                       double l,
                       double q,
-                      double * tau0_minus_tau,
-                      double * sources,
                       radial_function_type radial_type,
                       double * trsf
                       );
@@ -627,6 +618,10 @@ extern "C" {
                                     HyperInterpStruct *pHIS
                                     );
 
+  int transfer_global_selection_read(
+                                     struct transfers * ptr
+                                     );
+
   int transfer_workspace_init(
                               struct transfers * ptr,
                               struct precision * ppr,
@@ -675,3 +670,4 @@ extern "C" {
 #endif
 
 #endif
+/* @endcond */

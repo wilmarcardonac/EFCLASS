@@ -301,6 +301,9 @@ int evolver_ndf15(
   done = _FALSE_;
   at_hmin = _FALSE_;
   while (done==_FALSE_){
+    /**class_test(stepstat[2] > 1e5, error_message,
+	       "Too many steps in evolver! Current stepsize:%g, in interval: [%g:%g]\n",
+	       absh,t0,tfinal);*/
     hmin = minimum_variation;
     maxtmp = MAX(hmin,absh);
     absh = MIN(hmax, maxtmp);
@@ -658,6 +661,13 @@ int evolver_ndf15(
 		       parameters_and_workspace_for_derivs,error_message),
 	     error_message,
 	     error_message);
+
+  if (print_variables!=NULL){
+    /** If we are printing variables, we must store the final point */
+    class_call((*print_variables)(tnew,ynew+1,f0+1,
+				  parameters_and_workspace_for_derivs,error_message),
+	       error_message,error_message);
+  }
 
   if (verbose > 0){
     printf("\n End of evolver. Next=%d, t=%e and tnew=%e.",next,t,tnew);
@@ -1054,6 +1064,122 @@ int ludcmp(double **a, int n, int *indx, double *d, double *vv){
   return _SUCCESS_;
 }
 
+int fzero_Newton(int (*func)(double *x,
+                             int x_size,
+                             void *param,
+                             double *F,
+                             ErrorMsg error_message),
+                 double *x_inout,
+                 double *dxdF,
+                 int x_size,
+                 double tolx,
+                 double tolF,
+                 void *param,
+                 int *fevals,
+                 ErrorMsg error_message){
+  /**Given an initial guess x[1..n] for a root in n dimensions,
+     take ntrial Newton-Raphson steps to improve the root.
+     Stop if the root converges in either summed absolute
+     variable increments tolx or summed absolute function values tolf.*/
+  int k,i,j,*indx, ntrial=20;
+  double errx,errf,d,*F0,*Fdel,**Fjac,*p, *lu_work;
+  int has_converged = _FALSE_;
+  double toljac = 1e-3;
+  double *delx;
+
+  /** All arrays are indexed as [0, n-1] with the exception of p, indx,
+      lu_work and Fjac, since they are passed to ludcmp and lubksb. */
+  class_alloc(indx, sizeof(int)*(x_size+1), error_message);
+  class_alloc(p, sizeof(double)*(x_size+1), error_message);
+  class_alloc(lu_work, sizeof(double)*(x_size+1), error_message);
+  class_alloc(Fjac, sizeof(double *)*(x_size+1), error_message);
+  Fjac[0] = NULL;
+  class_alloc(Fjac[1], sizeof(double)*(x_size*x_size+1), error_message);
+  for (i=2; i<=x_size; i++){
+    Fjac[i] = Fjac[i-1] + x_size;
+  }
+
+  class_alloc(F0, sizeof(double)*x_size, error_message);
+  class_alloc(delx, sizeof(double)*x_size, error_message);
+  class_alloc(Fdel, sizeof(double)*x_size, error_message);
+
+  for (i=1; i<=x_size; i++){
+    delx[i-1] = toljac*dxdF[i-1];
+  }
+
+  for (k=1;k<=ntrial;k++) {
+    /** Compute F(x): */
+    /**printf("x = [%f, %f], delx = [%e, %e]\n",
+       x_inout[0],x_inout[1],delx[0],delx[1]);*/
+    class_call(func(x_inout, x_size, param, F0, error_message),
+               error_message, error_message);
+    /**    printf("F0 = [%f, %f]\n",F0[0],F0[1]);*/
+    *fevals = *fevals + 1;
+    errf=0.0; //fvec and Jacobian matrix in fjac.
+    for (i=1; i<=x_size; i++)
+      errf += fabs(F0[i-1]); //Check function convergence.
+    if (errf <= tolF){
+      has_converged = _TRUE_;
+      break;
+    }
+
+    /**
+    if (k==1){
+      for (i=1; i<=x_size; i++){
+        delx[i-1] *= F0[i-1];
+      }
+    }
+    */
+
+    /** Compute the jacobian of F: */
+    for (i=1; i<=x_size; i++){
+      if (F0[i-1]<0.0)
+        delx[i-1] *= -1;
+      x_inout[i-1] += delx[i-1];
+
+      /**      printf("x = [%f, %f], delx = [%e, %e]\n",
+               x_inout[0],x_inout[1],delx[0],delx[1]);*/
+      class_call(func(x_inout, x_size, param, Fdel, error_message),
+                 error_message, error_message);
+      /**      printf("F = [%f, %f]\n",Fdel[0],Fdel[1]);*/
+      for (j=1; j<=x_size; j++)
+        Fjac[j][i] = (Fdel[j-1]-F0[j-1])/delx[i-1];
+      x_inout[i-1] -= delx[i-1];
+    }
+    *fevals = *fevals + x_size;
+
+    for (i=1; i<=x_size; i++)
+      p[i] = -F0[i-1]; //Right-hand side of linear equations.
+    ludcmp(Fjac, x_size, indx, &d, lu_work); //Solve linear equations using LU decomposition.
+    lubksb(Fjac, x_size, indx, p);
+    errx=0.0; //Check root convergence.
+    for (i=1; i<=x_size; i++) { //Update solution.
+      errx += fabs(p[i]);
+      x_inout[i-1] += p[i];
+    }
+    if (errx <= tolx){
+      has_converged = _TRUE_;
+      break;
+    }
+  }
+
+  free(p);
+  free(lu_work);
+  free(indx);
+  free(Fjac[1]);
+  free(Fjac);
+  free(F0);
+  free(delx);
+  free(Fdel);
+
+  if (has_converged == _TRUE_){
+    return _SUCCESS_;
+  }
+  else{
+    class_stop(error_message, "Newton's method failed to converge. Try improving initial guess on the parameters, decrease the tolerance requirements to Newtons method or increase the precision of the input function.\n");
+  }
+}
+
 /**********************************************************************/
 /* Here are some routines related to the calculation of the jacobian: */
 /* "numjac", "initialize_jacobian", "uninitialize_jacobian",					*/
@@ -1285,7 +1411,7 @@ int numjac(
 	       use the column computed with this increment.
 	       This depends on wether we are in sparse mode or not: */
 	    if ((jac->use_sparse)&&(jac->repeated_pattern >= jac->trust_sparse)){
-	      for(i=Ap[j-1];i<Ap[j];i++) jac->xjac[i]=nj_ws->tmp[Ai[i]];
+	      for(i=Ap[j-1];i<Ap[j];i++) jac->xjac[i]=nj_ws->tmp[Ai[i]+1];
 	    }
 	    else{
 	      for(i=1;i<=neq;i++) dFdy[i][j]=nj_ws->tmp[i];

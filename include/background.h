@@ -10,13 +10,19 @@
 #include "dei_rkck.h"
 #include "parser.h"
 
+/** list of possible types of spatial curvature */
+
 enum spatial_curvature {flat,open,closed};
+
+/** list of possible parametrisations of the DE equation of state */
+
+enum equation_of_state {CLP,EDE};
 
 /**
  * All background parameters and evolution that other modules need to know.
  *
  * Once initialized by the backgound_init(), contains all necessary
- * information on the background evolution (excepted thermodynamics),
+ * information on the background evolution (except thermodynamics),
  * and in particular, a table of all background quantities as a
  * function of time and scale factor, used for interpolation in other
  * modules.
@@ -25,7 +31,7 @@ enum spatial_curvature {flat,open,closed};
 struct background
 {
   /** @name - input parameters initialized by user in input module
-   *  (all other quantitites are computed in this module, given these parameters
+   *  (all other quantities are computed in this module, given these parameters
    *   and the content of the 'precision' structure)
    *
    * The background cosmological parameters listed here form a parameter
@@ -37,41 +43,69 @@ struct background
 
   //@{
 
-  double H0; /**< \f$ H_0 \f$ : Hubble parameter (in fact, [H_0/c]) in \f$ Mpc^{-1} \f$ */
+  double H0; /**< \f$ H_0 \f$: Hubble parameter (in fact, [\f$H_0/c\f$]) in \f$ Mpc^{-1} \f$ */
 
-  double Omega0_g; /**< \f$ \Omega_{0 \gamma} \f$ : photons */
+  double Omega0_g; /**< \f$ \Omega_{0 \gamma} \f$: photons */
 
-  double T_cmb; /**< \f$ T_{cmb} \f$ : current CMB temperature in Kelvins */
+  double T_cmb; /**< \f$ T_{cmb} \f$: current CMB temperature in Kelvins */
 
-  double Omega0_b; /**< \f$ \Omega_{0 b} \f$ : baryons */
+  double Omega0_b; /**< \f$ \Omega_{0 b} \f$: baryons */
 
-  double Omega0_cdm; /**< \f$ \Omega_{0 cdm} \f$ : cold dark matter */
+  double Omega0_cdm; /**< \f$ \Omega_{0 cdm} \f$: cold dark matter */
 
-  double Omega0_lambda; /**< \f$ \Omega_{0_\Lambda} \f$ : cosmological constant */
+  double Omega0_lambda; /**< \f$ \Omega_{0_\Lambda} \f$: cosmological constant */
 
-  double Omega0_fld; /**< \f$ \Omega_{0 de} \f$ : fluid with constant
-			\f$ w \f$ and \f$ c_s^2 \f$ */
-  double w0_fld; /**< \f$ w0_{DE} \f$ : current fluid equation of state parameter */
-  double wa_fld; /**< \f$ wa_{DE} \f$ : fluid equation of state parameter derivative */
+  double Omega0_fld; /**< \f$ \Omega_{0 de} \f$: fluid */
 
-  double cs2_fld; /**< \f$ c^2_{s~DE} \f$ : sound speed of the fluid
+  enum equation_of_state fluid_equation_of_state; /**< parametrisation scheme for fluid equation of state */
+
+  double w0_fld; /**< \f$ w0_{DE} \f$: current fluid equation of state parameter */
+  double wa_fld; /**< \f$ wa_{DE} \f$: fluid equation of state parameter derivative */
+  double Omega_EDE; /**< \f$ wa_{DE} \f$: Early Dark Energy density parameter */
+
+  double cs2_fld; /**< \f$ c^2_{s~DE} \f$: sound speed of the fluid
 		     in the frame comoving with the fluid (so, this is
 		     not [delta p/delta rho] in the synchronous or
 		     newtonian gauge!!!) */
-
   double b_pi; /* fR0HS PARAMETER FOR DESIGNER MODEL w = -1 */
   double log10b_pi; /* LOG10 ABSOLUTE VALUE OF fR0HS. PARAMETER FOR DESIGNER MODEL w = -1 */
   double bhs; /* PARAMETER IN THE HU-SAWICKY MODEL WITH SAVVAS' PARAMETRISATION */
+  
+  short use_ppf; /**< flag switching on PPF perturbation equations
+                    instead of true fluid equations for
+                    perturbations. It could have been defined inside
+                    perturbation structure, but we leave it here in
+                    such way to have all fld parameters grouped. */
 
-  double Omega0_ur; /**< \f$ \Omega_{0 \nu r} \f$ : ultra-relativistic neutrinos */
+  double c_gamma_over_c_fld; /**< ppf parameter defined in eq. (16) of 0808.3125 [astro-ph] */
 
-  double Omega0_k; /**< \f$ \Omega_{0_k} \f$ : curvature contribution */
+  double Omega0_ur; /**< \f$ \Omega_{0 \nu r} \f$: ultra-relativistic neutrinos */
 
-  int N_ncdm;                            /**< Number of distinguishabe ncdm species */
-  double * M_ncdm;                       /**<vector of masses of non-cold relic:
+  double Omega0_dcdmdr; /**< \f$ \Omega_{0 dcdm}+\Omega_{0 dr} \f$: decaying cold dark matter (dcdm) decaying to dark radiation (dr) */
+
+  double Gamma_dcdm; /**< \f$ \Gamma_{dcdm} \f$: decay constant for decaying cold dark matter */
+
+  double Omega_ini_dcdm;    /**< \f$ \Omega_{ini,dcdm} \f$: rescaled initial value for dcdm density (see 1407.2418 for definitions) */
+
+  double Omega0_scf;        /**< \f$ \Omega_{0 scf} \f$: scalar field */
+  short attractor_ic_scf;   /**< whether the scalar field has attractor initial conditions */
+  double phi_ini_scf;       /**< \f$ \phi(t_0) \f$: scalar field initial value */
+  double phi_prime_ini_scf; /**< \f$ d\phi(t_0)/d\tau \f$: scalar field initial derivative wrt conformal time */
+  double * scf_parameters;  /**< list of parameters describing the scalar field potential */
+  int scf_parameters_size;  /**< size of scf_parameters */
+  int scf_tuning_index;     /**< index in scf_parameters used for tuning */
+  //double scf_lambda; /**< \f$ \lambda \f$ : scalar field exponential potential slope */
+  //double scf_alpha;  /**< \f$ \alpha \f$ : Albrecht-Skordis polynomial slope */
+  //double scf_B; /**< \f$ \alpha \f$ : Albrecht-Skordis field shift */
+  //double scf_A; /**< \f$ \alpha \f$ : Albrecht-Skordis offset */
+
+  double Omega0_k; /**< \f$ \Omega_{0_k} \f$: curvature contribution */
+
+  int N_ncdm;                            /**< Number of distinguishable ncdm species */
+  double * M_ncdm;                       /**< vector of masses of non-cold relic:
                                              dimensionless ratios m_ncdm/T_ncdm */
-  double * Omega0_ncdm, Omega0_ncdm_tot; /**<Omega0_ncdm for each species and for the total Omega0_ncdm */
-  double * deg_ncdm, deg_ncdm_default;   /**<vector of degeneracy parameters in factor
+  double * Omega0_ncdm, Omega0_ncdm_tot; /**< Omega0_ncdm for each species and for the total Omega0_ncdm */
+  double * deg_ncdm, deg_ncdm_default;   /**< vector of degeneracy parameters in factor
                                              of p-s-d: 1 for one family of neutrinos
                                              (= one neutrino plus its anti-neutrino,
                                              total g*=1+1=2, so deg = 0.5 g*); and its
@@ -89,7 +123,7 @@ struct background
 					     ksi_ncdm1/T_ncdm1; and its
 					     default value */
   double * ncdm_psd_parameters;         /**< list of parameters for specifying/modifying
-                                             ncdm p.s.d.'s, to be cutomized for given model
+                                             ncdm p.s.d.'s, to be customized for given model
                                              (could be e.g. mixing angles) */
   /* end of parameters for analytical ncdm p-s-d */
 
@@ -105,13 +139,19 @@ struct background
 
   //@{
 
-  double h; /** reduced Hubble parameter */
+  double h; /**< reduced Hubble parameter */
   double age; /**< age in Gyears */
   double conformal_age; /**< conformal age in Mpc */
-  double K; /**< \f$ K \f$ : Curvature parameter K=-Omega0_k*a_today^2*H_0^2; */
+  double K; /**< \f$ K \f$: Curvature parameter \f$ K=-\Omega0_k*a_{today}^2*H_0^2\f$; */
   int sgnK; /**< K/|K|: -1, 0 or 1 */
-  double * m_ncdm_in_eV; /**< list of ncdm masses in eV (infered from M_ncdm and other parameters above) */
+  double * m_ncdm_in_eV; /**< list of ncdm masses in eV (inferred from M_ncdm and other parameters above) */
   double Neff; /**< so-called "effective neutrino number", computed at earliest time in interpolation table */
+  double Omega0_dcdm; /**< \f$ \Omega_{0 dcdm} \f$: decaying cold dark matter */
+  double Omega0_dr; /**< \f$ \Omega_{0 dr} \f$: decay radiation */
+  double a_eq;      /**< scale factor at radiation/matter equality */
+  double H_eq;      /**< Hubble rate at radiation/matter equality [Mpc^-1] */
+  double z_eq;      /**< redshift at radiation/matter equality */
+  double tau_eq;    /**< conformal time at radiation/matter equality [Mpc] */
 
   //@}
 
@@ -119,7 +159,7 @@ struct background
 
   //@{
 
-  double a_today; /** scale factor today (arbitrary and irrelevant for most purposes) */
+  double a_today; /**< scale factor today (arbitrary and irrelevant for most purposes) */
 
   //@}
 
@@ -128,17 +168,28 @@ struct background
   //@{
 
   int index_bg_a;             /**< scale factor */
-  int index_bg_H;             /**< Hubble parameter in Mpc^{-1} */
+  int index_bg_H;             /**< Hubble parameter in \f$Mpc^{-1}\f$ */
   int index_bg_H_prime;       /**< its derivative w.r.t. conformal time */
 
-  /* end of vector in short format, now quantitites in normal format */
+  /* end of vector in short format, now quantities in normal format */
 
   int index_bg_rho_g;         /**< photon density */
   int index_bg_rho_b;         /**< baryon density */
   int index_bg_rho_cdm;       /**< cdm density */
   int index_bg_rho_lambda;    /**< cosmological constant density */
-  int index_bg_rho_fld;       /**< fluid with constant w density */
+  int index_bg_rho_fld;       /**< fluid density */
+  int index_bg_w_fld;         /**< fluid equation of state */
   int index_bg_rho_ur;        /**< relativistic neutrinos/relics density */
+  int index_bg_rho_dcdm;      /**< dcdm density */
+  int index_bg_rho_dr;        /**< dr density */
+
+  int index_bg_phi_scf;       /**< scalar field value */
+  int index_bg_phi_prime_scf; /**< scalar field derivative wrt conformal time */
+  int index_bg_V_scf;         /**< scalar field potential V */
+  int index_bg_dV_scf;        /**< scalar field potential derivative V' */
+  int index_bg_ddV_scf;       /**< scalar field potential second derivative V'' */
+  int index_bg_rho_scf;       /**< scalar field energy density */
+  int index_bg_p_scf;         /**< scalar field pressure */
 
   int index_bg_rho_ncdm1;     /**< density of first ncdm species (others contiguous) */
   int index_bg_p_ncdm1;       /**< pressure of first ncdm species (others contiguous) */
@@ -158,7 +209,7 @@ struct background
   int index_bg_FRprime_fR;    /**< DERIVATIVE OF FR W.R.T SCALE FACTOR */
   int index_bg_FRdoubleprime_fR;/**< SECOND DERIVATIVE OF FR W.R.T. SCALE FACTOR */
 
-  /* end of vector in normal format, now quantitites in long format */
+  /* end of vector in normal format, now quantities in long format */
 
   int index_bg_rho_crit;      /**< critical density */
   int index_bg_Omega_m;       /**< non-relativistic density fraction (\f$ \Omega_b + \Omega_cdm + \Omega_{\nu nr} \f$) */
@@ -168,8 +219,8 @@ struct background
   int index_bg_time;          /**< proper (cosmological) time in Mpc */
   int index_bg_rs;            /**< comoving sound horizon in Mpc */
 
-  int index_bg_D;             /**< density growth factor in dust universe, D = H \int [da/(aH)^3] (arbitrary normalization) */
-  int index_bg_f;             /**< velocity growth factor in dust universe, [dlnD]/[dln a] */
+  int index_bg_D;             /**< scale independent growth factor D(a) for CDM perturbations */
+  int index_bg_f;             /**< corresponding velocity growth factor [dlnD]/[dln a] */
 
   int bg_size_short;  /**< size of background vector in the "short format" */
   int bg_size_normal; /**< size of background vector in the "normal format" */
@@ -197,6 +248,7 @@ struct background
 
   //@}
 
+
   /** @name - all indices for the vector of background quantities to be integrated (=bi)
    *
    * Most background quantities can be immediately inferred from the
@@ -205,16 +257,26 @@ struct background
    * be integrated with time: the scale factor, using the Friedmann
    * equation). These indices refer to the vector of
    * quantities to be integrated with time.
+   * {B} quantities are needed by background_functions() while {C} quantities are not.
    */
 
   //@{
 
-  int index_bi_a;       /**< scale factor */
-  int index_bi_time;    /**< proper (cosmological) time in Mpc */
-  int index_bi_rs;      /**< sound horizon */
-  int index_bi_tau;     /**< conformal time in Mpc */
-  int index_bi_growth;  /**< integral over [da/(aH)^3]=[dtau/(aH^2)], useful for growth factor */
-  int bi_size;
+  int index_bi_a;       /**< {B} scale factor */
+  int index_bi_rho_dcdm;/**< {B} dcdm density */
+  int index_bi_rho_dr;  /**< {B} dr density */
+  int index_bi_rho_fld; /**< {B} fluid density */
+  int index_bi_phi_scf;       /**< {B} scalar field value */
+  int index_bi_phi_prime_scf; /**< {B} scalar field derivative wrt conformal time */
+
+  int index_bi_time;    /**< {C} proper (cosmological) time in Mpc */
+  int index_bi_rs;      /**< {C} sound horizon */
+  int index_bi_tau;     /**< {C} conformal time in Mpc */
+  int index_bi_D;       /**< {C} scale independent growth factor D(a) for CDM perturbations. */
+  int index_bi_D_prime; /**< {C} D satisfies \f$ [D''(\tau)=-aHD'(\tau)+3/2 a^2 \rho_M D(\tau) \f$ */
+
+  int bi_B_size;        /**< Number of {B} parameters */
+  int bi_size;          /**< Number of {B}+{C} parameters */
 
   //@}
 
@@ -229,13 +291,16 @@ struct background
   //@{
 
   short has_cdm;       /**< presence of cold dark matter? */
+  short has_dcdm;      /**< presence of decaying cold dark matter? */
+  short has_dr;        /**< presence of relativistic decay radiation? */
+  short has_scf;       /**< presence of a scalar field? */
   short has_ncdm;      /**< presence of non-cold dark matter? */
   short has_lambda;    /**< presence of cosmological constant? */
   short has_fld;       /**< presence of fluid with constant w and cs2? */
   short has_ur;        /**< presence of ultra-relativistic neutrinos/relics? */
   short has_curvature; /**< presence of global spatial curvature? */
-  short has_fR;        /**< presence of effective fluid f(R) parametrisation */ 
-
+  short has_fR;        /**< presence of effective fluid f(R) parametrisation */
+  
   //@}
 
   /**
@@ -244,15 +309,17 @@ struct background
 
 
   //@{
-
-  double ** q_ncdm_bg;  /* Pointers to vectors of background sampling in q */
-  double ** w_ncdm_bg;  /* Pointers to vectors of corresponding quadrature weights w */
-  double ** q_ncdm;     /* Pointers to vectors of perturbation sampling in q */
-  double ** w_ncdm;     /* Pointers to vectors of corresponding quadrature weights w */
-  double ** dlnf0_dlnq_ncdm; /* Pointers to vectors of logarithmic derivatives of p-s-d */
-  int * q_size_ncdm_bg; /* Size of the q_ncdm_bg arrays */
-  int * q_size_ncdm;    /* Size of the q_ncdm arrays */
-  double * factor_ncdm; /* List of normalization factors for calculating energy density etc.*/
+  int * ncdm_quadrature_strategy; /**< Vector of integers according to quadrature strategy. */
+  int * ncdm_input_q_size; /**< Vector of numbers of q bins */
+  double * ncdm_qmax;   /**< Vector of maximum value of q */
+  double ** q_ncdm_bg;  /**< Pointers to vectors of background sampling in q */
+  double ** w_ncdm_bg;  /**< Pointers to vectors of corresponding quadrature weights w */
+  double ** q_ncdm;     /**< Pointers to vectors of perturbation sampling in q */
+  double ** w_ncdm;     /**< Pointers to vectors of corresponding quadrature weights w */
+  double ** dlnf0_dlnq_ncdm; /**< Pointers to vectors of logarithmic derivatives of p-s-d */
+  int * q_size_ncdm_bg; /**< Size of the q_ncdm_bg arrays */
+  int * q_size_ncdm;    /**< Size of the q_ncdm arrays */
+  double * factor_ncdm; /**< List of normalization factors for calculating energy density etc.*/
 
   //@}
 
@@ -274,6 +341,10 @@ struct background
   /** @name - technical parameters */
 
   //@{
+
+  short shooting_failed;  /**< flag is set to true if shooting failed. */
+
+  ErrorMsg shooting_error; /**< Error message from shooting failed. */
 
   short background_verbose; /**< flag regulating the amount of information sent to standard output (none if set to zero) */
 
@@ -320,7 +391,7 @@ struct background_parameters_for_distributions {
 };
 
 /**************************************************************/
-
+/* @cond INCLUDE_WITH_DOXYGEN */
 /*
  * Boilerplate for C++
  */
@@ -338,10 +409,24 @@ extern "C" {
 			);
 
   int background_tau_of_z(
-			  struct background *pba,
-			  double z,
-			  double * tau
-			  );
+                          struct background *pba,
+                          double z,
+                          double * tau
+                          );
+
+  int background_functions(
+			   struct background *pba,
+			   double * pvecback_B,
+			   short return_format,
+			   double * pvecback
+			   );
+
+  int background_w_fld(
+                       struct background * pba,
+                       double a,
+                       double * w_fld,
+                       double * dw_over_da_fld,
+                       double * integral_fld);
 
   int background_init(
 		      struct precision *ppr,
@@ -352,16 +437,17 @@ extern "C" {
 		      struct background *pba
 		      );
 
+  int background_free_input(
+                            struct background *pba
+                            );
+
+  int background_free_noinput(
+                    struct background *pba
+                    );
+
   int background_indices(
 			 struct background *pba
 			 );
-
-  int background_functions(
-			   struct background *pba,
-			   double a,
-			   short return_format,
-			   double * pvecback
-			   );
 
   int background_ncdm_distribution(
 				  void *pba,
@@ -413,6 +499,20 @@ extern "C" {
 				    double * pvecback_integration
 				    );
 
+  int background_find_equality(
+                               struct precision *ppr,
+                               struct background *pba
+                               );
+
+  int background_output_titles(struct background * pba,
+                               char titles[_MAXTITLESTRINGLENGTH_]
+                               );
+
+  int background_output_data(
+                           struct background *pba,
+                           int number_of_titles,
+                           double *data);
+
   int background_derivs(
 			 double z,
 			 double * y,
@@ -420,6 +520,29 @@ extern "C" {
 			 void * parameters_and_workspace,
 			 ErrorMsg error_message
 			 );
+
+  /** Scalar field potential and its derivatives **/
+  double V_scf(
+               struct background *pba,
+               double phi
+               );
+
+  double dV_scf(
+		struct background *pba,
+		double phi
+		);
+
+  double ddV_scf(
+                 struct background *pba,
+                 double phi
+                 );
+
+  /** Coupling between scalar field and matter **/
+  double Q_scf(
+               struct background *pba,
+               double phi,
+               double phi_prime
+               );
 
 #ifdef __cplusplus
 }
@@ -473,7 +596,7 @@ extern "C" {
 
 //@{
 
-#define _SCALE_BACK_ 0.1  /**< logsrithmic step used when searching
+#define _SCALE_BACK_ 0.1  /**< logarithmic step used when searching
 			     for an initial scale factor at which ncdm
 			     are still relativistic */
 
@@ -487,3 +610,4 @@ extern "C" {
 
 
 #endif
+/* @endcond */
