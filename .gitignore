@@ -1,0 +1,5 @@
+build/
+class
+*~
+libclass.a
+output/*
