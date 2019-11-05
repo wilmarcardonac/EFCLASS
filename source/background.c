@@ -81,7 +81,7 @@
 #include "background.h"
 #include <stdio.h>
 #include <math.h>
-#include <gsl/gsl_sf_hyperg.h>
+/*#include <gsl/gsl_sf_hyperg.h>*/
 
 /**
  * Background quantities at given conformal time tau.
