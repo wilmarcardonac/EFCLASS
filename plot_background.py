@@ -13,7 +13,11 @@ import matplotlib.pyplot as py
 cambunits = (2.726e6)**2
 
 #BACKGROUND
-z,propertime,conformaltime,Hubbleoverc,comovingdistance,angdiadist,lumdist,comovsndhrz,rhog,rhob,rhocdm,rhoncdm,pncdm,rhofld,rhour,rhocrit = np.loadtxt('./output/Cl_lcdm_nu_background.dat',unpack=True,usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
+z,propertime,conformaltime,Hubbleoverc,comovingdistance,angdiadist,lumdist,comovsndhrz,rhog,rhob,rhocdm,rhoncdm,pncdm,pseudopncdm,rhofld,rhour,rhocrit = np.loadtxt('./output/Cl_lcdm_nu_background.dat',unpack=True,usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
+
+z1,propertime1,conformaltime1,Hubbleoverc1,comovingdistance1,angdiadist1,lumdist1,comovsndhrz1,rhog1,rhob1,rhocdm1,rhoncdm1,pncdm1,pseudopncdm1,rhofld1,rhour1,rhocrit1 = np.loadtxt('./output/Cl_lcdm_nu_CLASS_background.dat',unpack=True,usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
+
+z2,propertime2,conformaltime2,Hubbleoverc2,comovingdistance2,angdiadist2,lumdist2,comovsndhrz2,rhog2,rhob2,rhocdm2,rhoncdm2,pncdm2,pseudopncdm2,rhofld2,rhour2,rhocrit2 = np.loadtxt('./output/Cl_lcdm_nu_test_background.dat',unpack=True,usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
 
 #a,w,wprime,H,cs2,ceff2,Omegam,OmegaDE,dprho,dm,Vm,dde,Vde,pi,GeffGN,Qeff = np.loadtxt('../output/functions.txt',unpack=True,usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
 
@@ -64,6 +68,36 @@ py.ylim(-1.,1.)
 py.legend(loc=0)
 
 py.savefig('./output/wncdm.pdf')
+
+py.close()
+
+fig = py.figure()
+
+#py.plot(1./(1.+z),(rhoncdm-rhoncdm1)/rhoncdm1*1.e2,color='red',label=r'$\rho_{ncdm}$')
+
+#py.plot(1./(1.+z),(rhoncdm2-rhoncdm1)/rhoncdm2*1.e2,color='red',label=r'$\rho_{ncdm}$',ls='dotted')
+
+#py.plot(1./(1.+z),(pncdm-pncdm1)/pncdm1*1.e2,color='blue',label=r'$p_{ncdm}$')
+
+#py.plot(1./(1.+z),(pncdm2-pncdm1)/pncdm2*1.e2,color='blue',label=r'$p_{ncdm}$',ls='dashed')
+
+#py.plot(1./(1.+z),(rhour-rhour1)/rhour1*1.e2,color='purple',label=r'$\rho_{ur}$',ls='dotted')
+
+py.plot(1./(1.+z),(pseudopncdm-pseudopncdm1)/pseudopncdm1*1.e2,color='green',label=r'$pseudo_{ncdm}$')
+
+#py.plot(1./(1.+z),(pseudopncdm2-pseudopncdm1)/pseudopncdm2*1.e2,color='green',label=r'$pseudo_{ncdm}$')
+
+py.xlabel(r'$a$',fontsize='large')
+
+py.ylabel(r'$\%$',fontsize='large')
+
+py.xscale('log')
+
+py.legend(loc=0)
+
+py.savefig('./output/difference_rhoncdm.pdf')
+
+py.close()
 
 exit()
 

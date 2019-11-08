@@ -55,8 +55,8 @@ INCLUDES = -I../include
 INCLUDES += -I/opt/ohpc/pub/libs/gnu/gsl/1.16/include ##WC
 LDFLAG += -L/opt/ohpc/pub/libs/gnu/gsl/1.16/lib -lgsl -lgslcblas
 #=======
-#INCLUDES += -I/usr/local/include ##WC
-#LDFLAG += -L/usr/local/lib 
+INCLUDES += -I/usr/local/include ##WC
+LDFLAG += -L/usr/local/lib -lmd 
 #>>>>>>> 4e3dc2a532559db7be0ddcfb1dc5d4a5ec1dd2da
 #LIBDIR = /usr/local/lib              ##WC  
 #LIB_FL = -L$(LIBDIR) -lgsl -lgslcblas -lm  ##WC
@@ -78,7 +78,7 @@ endif
 
 TOOLS = growTable.o dei_rkck.o sparse.o evolver_rkck.o  evolver_ndf15.o arrays.o parser.o quadrature.o hyperspherical.o common.o
 
-SOURCE = input.o background.o thermodynamics.o perturbations.o primordial.o nonlinear.o transfer.o spectra.o lensing.o
+SOURCE = input.o background.o thermodynamics.o perturbations.o primordial.o nonlinear.o transfer.o spectra.o lensing.o  
 
 INPUT = input.o
 
@@ -142,7 +142,7 @@ libclass.a: $(TOOLS) $(SOURCE) $(EXTERNAL)
 	$(AR)  $@ $(addprefix build/, $(TOOLS) $(SOURCE) $(EXTERNAL))
 
 class: $(TOOLS) $(SOURCE) $(EXTERNAL) $(OUTPUT) $(CLASS)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o class $(addprefix build/,$(notdir $^)) -lm -lgsl -lgslcblas
+	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o class $(addprefix build/,$(notdir $^)) -lm -lgsl -lgslcblas -lmd 
 
 test_sigma: $(TOOLS) $(SOURCE) $(EXTERNAL) $(OUTPUT) $(TEST_SIGMA)
 	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o test_sigma $(addprefix build/,$(notdir $^)) -lm

@@ -685,8 +685,12 @@ int background_functions(
   double fR0HS,HSb;
   /* VARIABLES f(R) */
   //double x,y,R;
-
-
+  /* FUNCTIONS NEUTRINO PROJECT*/
+  double density_neutrino_at_a(); 
+  double pressure_neutrino_at_a();
+  double pseudo_pressure_neutrino_at_a();
+  double number_density_neutrino_at_a();
+  
   /** - initialize local variables */
   rho_tot = 0.;
   p_tot = 0.;
@@ -758,13 +762,13 @@ int background_functions(
                                          NULL,
                                          &pseudo_p_ncdm),
                  pba->error_message,
-                 pba->error_message);
+                 pba->error_message); 
 
-      pvecback[pba->index_bg_rho_ncdm1+n_ncdm] = rho_ncdm;
+      pvecback[pba->index_bg_rho_ncdm1+n_ncdm] = rho_ncdm; 
       rho_tot += rho_ncdm;
-      pvecback[pba->index_bg_p_ncdm1+n_ncdm] = p_ncdm;
+      pvecback[pba->index_bg_p_ncdm1+n_ncdm] = p_ncdm; 
       p_tot += p_ncdm;
-      pvecback[pba->index_bg_pseudo_p_ncdm1+n_ncdm] = pseudo_p_ncdm;
+      pvecback[pba->index_bg_pseudo_p_ncdm1+n_ncdm] = pseudo_p_ncdm; 
 
       /* (3 p_ncdm1) is the "relativistic" contrinution to rho_ncdm1 */
       rho_r += 3.* p_ncdm;
@@ -1284,12 +1288,19 @@ int background_ncdm_momenta(
   double epsilon;
   double q2;
   double factor2;
-  double density_neutrino_at_a() ;
+
+  /* MODIFICATIONS TO AVOID NUMERICAL INTEGRATION */
+  double number_density_neutrino_at_a();
+  double density_neutrino_at_a();
   double pressure_neutrino_at_a();
-  double x,y;
+  double pseudo_pressure_neutrino_at_a();
+  double derivative_density_neutrino_at_a();
+  double a = 1./(1.+z);
+  double m = M*_k_B_*2.726e0*pow(4.e0/11.e0,1.e0/3.e0)/_eV_;
+  /* MODIFICATIONS END */
 
   /** - rescale normalization at given redshift */
-  factor2 = factor*pow(1+z,4);
+  //  factor2 = factor*pow(1+z,4);
 
   /** - initialize quantities */
   if (n!=NULL) *n = 0.;
@@ -1299,34 +1310,29 @@ int background_ncdm_momenta(
   if (pseudo_p!=NULL) *pseudo_p = 0.;
 
   /** - loop over momenta */
-  for (index_q=0; index_q<qsize; index_q++) {
+  //  for (index_q=0; index_q<qsize; index_q++) {
 
     /* squared momentum */
-    q2 = qvec[index_q]*qvec[index_q];
+    //q2 = qvec[index_q]*qvec[index_q];
 
     /* energy */
-    epsilon = sqrt(q2+M*M/(1.+z)/(1.+z));
+    //epsilon = sqrt(q2+M*M/(1.+z)/(1.+z));
 
     /* integrand of the various quantities */
-    if (n!=NULL) *n += q2*wvec[index_q];
-    if (rho!=NULL) *rho += q2*epsilon*wvec[index_q];
-    if (p!=NULL) *p += q2*q2/3./epsilon*wvec[index_q];
-    if (drho_dM!=NULL) *drho_dM += q2*M/(1.+z)/(1.+z)/epsilon*wvec[index_q];
-    if (pseudo_p!=NULL) *pseudo_p += pow(q2/epsilon,3)/3.0*wvec[index_q];
-  }
+    //if (n!=NULL) *n += q2*wvec[index_q];
+    //if (rho!=NULL) *rho += q2*epsilon*wvec[index_q];
+    //if (p!=NULL) *p += q2*q2/3./epsilon*wvec[index_q];
+    //if (drho_dM!=NULL) *drho_dM += q2*M/(1.+z)/(1.+z)/epsilon*wvec[index_q];
+    //if (pseudo_p!=NULL) *pseudo_p += pow(q2/epsilon,3)/3.0*wvec[index_q];
+  //}
 
   /** - ajust normalization */
-  if (n!=NULL) *n *= factor2*(1.+z);
-  if (rho!=NULL) *rho *= factor2;
-  if (p!=NULL) *p *= factor2;
-  if (drho_dM!=NULL) *drho_dM *= factor2;
-  if (pseudo_p!=NULL) *pseudo_p *=factor2;
+  if (n!=NULL) *n = number_density_neutrino_at_a(a); //*= factor2*(1.+z);
+  if (rho!=NULL) *rho = density_neutrino_at_a(a,m); //*= factor2; //density_neutrino_at_a(1.e0/(1.e0+z),m); 
+  if (p!=NULL) *p = pressure_neutrino_at_a(a,m); //*= factor2;
+  if (drho_dM!=NULL) *drho_dM = derivative_density_neutrino_at_a(a,m); //*= factor2;
+  if (pseudo_p!=NULL) *pseudo_p = pseudo_pressure_neutrino_at_a(a,m); //*=factor2;
 
-  x = density_neutrino_at_a(1./(1.+z),M);
-  y = pressure_neutrino_at_a(1./(1.+z),M);
-  printf("rho_nu = %1.12e p_nu = %1.12e at a = %1.12e \n",x,y,1./(1.+z));
-  //printf("p_nu = %e at a = %e \n",y,1./(1.+z));
-  exit(1);
   return _SUCCESS_;
 }
 
@@ -1335,73 +1341,166 @@ int background_ncdm_momenta(
 double density_neutrino_at_a(double a,double m)
 {
   double result;
-  //double z_nu;
   int index_sum;
-  int index_sum_max = 5;
+  int index_sum_max = 20;//20;
   double Tnu_0;
   double Bessel0,Bessel1;
   double Struve1, Struve0;
   double struve();
   double param0,param1;
-  double g,x,y ; 
+  double g,x; 
 
-  Tnu_0 = 2.726*pow(4./11.,1./3.)*_k_B_/1.6e-19; // T_ncdm in eV
-  y = 1./Tnu_0;
-  result = 0.;
-  param0 = 0.;
-  param1 = 1.;
-  g = 2.;
-
-  for (index_sum=1;index_sum<index_sum_max;index_sum++)
+  Tnu_0 = 2.726e0*pow(4.e0/11.e0,1.e0/3.e0)*_k_B_/1.6e-19; // T_ncdm in eV
+  result = 0.e0;
+  param0 = 0.e0;
+  param1 = 1.e0;
+  g = 2.e0;
+ 
+  if(m!=0.)
     {
-      //z_nu = pow(index_sum*a*m/2./Tnu_0,2);
-      x = 1./Tnu_0; //2.131330993153e6 ;//index_sum*a*m/Tnu_0;
-      Bessel0 = gsl_sf_bessel_Y0(1./Tnu_0);
-      Bessel1 = gsl_sf_bessel_Y1(x);
-      Struve0 = struve(param0,x);
-      Struve1 = struve(param1,x);
-      printf("Y0 = %1.12e  Y1 = %1.12e H0 = %1.12e  H1 = %1.12e at x = %1.12e \n",Bessel0,Bessel1,Struve0,Struve1,y);
-      result += pow(-1.,index_sum)/pow(x,3)*( -pow(x,2) + 3.*_PI_*x*( Struve0 - Bessel0 )/2. + _PI_*(3. - pow(x,2)/2.)*(Bessel1 - Struve1) );
+      for (index_sum=1;index_sum<index_sum_max;index_sum++)
+	{
+	  x = index_sum*a*m/Tnu_0;
+	  Bessel0 = gsl_sf_bessel_Y0(x);
+	  Bessel1 = gsl_sf_bessel_Y1(x);
+	  Struve0 = struve(param0,x);
+	  Struve1 = struve(param1,x);
+	  result += pow(-1.,index_sum)/pow(x,3)*( -2.e0*pow(x,2)/_PI_ + 3.e0*x*( Struve0 - Bessel0 ) + ( pow(x,2) - 6.e0 )*( Struve1 - Bessel1 ) );
+	}
+      result = 8*_PI_*_G_/3.*(g*8.e0*pow(_PI_,3)/pow(_h_P_,3)*pow(_eV_,4)/pow(_c_,7)*pow(_Mpc_over_m_,2))*pow(m,4)*result/4.e0/_PI_;
     }
-  result = 8*_PI_*_G_/3.*g*pow(m,4)*result/2./pow(_PI_,2);
-  
+  else
+    {
+      result = 8*_PI_*_G_/3.*(g*8.e0*pow(_PI_,3)/pow(_h_P_,3)*pow(_eV_,4)/pow(_c_,7)*pow(_Mpc_over_m_,2))*pow(Tnu_0/a,4)*7.e0*pow(_PI_,2)/8.e0/3.e1;
+    }
+  return result;
+}
+
+double derivative_density_neutrino_at_a(double a,double m)
+{
+  double result;
+  int index_sum;
+  int index_sum_max = 20;
+  double Tnu_0;
+  double Bessel0,Bessel1;
+  double Struve1, Struve0;
+  double struve();
+  double param0,param1;
+  double g,x; 
+
+  Tnu_0 = 2.726e0*pow(4.e0/11.e0,1.e0/3.e0)*_k_B_/1.6e-19; // T_ncdm in eV
+  result = 0.e0;
+  param0 = 0.e0;
+  param1 = 1.e0;
+  g = 2.e0;
+ 
+  if(m!=0.)
+    {
+      for (index_sum=1;index_sum<index_sum_max;index_sum++)
+	{
+	  x = index_sum*a*m/Tnu_0;
+	  Bessel0 = gsl_sf_bessel_Y0(x);
+	  Bessel1 = gsl_sf_bessel_Y1(x);
+	  Struve0 = struve(param0,x);
+	  Struve1 = struve(param1,x);
+	  result += pow(-1.,index_sum)/x*( x*( Struve0 - Bessel0 ) - ( Struve1 - Bessel1 ) );
+	}
+      result = 8*_PI_*_G_/3.*(g*8.e0*pow(_PI_,3)/pow(_h_P_,3)*pow(_eV_,4)/pow(_c_,7)*pow(_Mpc_over_m_,2))*pow(m,3)*result/4.e0/_PI_*Tnu_0;
+    }
+  else
+    {
+      result = 0.; 
+    }
   return result;
 }
 
 double pressure_neutrino_at_a(double a,double m)
 {
   double result;
-  //double z_nu;
   int index_sum;
-  int index_sum_max = 10000;
+  int index_sum_max = 30;//30;
   double Tnu_0;
   double Bessel2;
   double Struve1, Struve0;
   double struve();
-  //double yn();
   double param0,param1;
   double g,x; 
   int n = 2;
 
-  Tnu_0 = 2.726*pow(4./11.,1./3.)*_k_B_/1.6e-19; // T_ncdm in eV
-  result = 0.;
-  param0 = 0.;
-  param1 = 1.;
-  g = 2.;
+  Tnu_0 = 2.726e0*pow(4.e0/11.e0,1.e0/3.e0)*_k_B_/1.6e-19; // T_ncdm in eV
+  result = 0.e0;
+  param0 = 0.e0;
+  param1 = 1.e0;
+  g = 2.e0;
 
-  for (index_sum=1;index_sum<index_sum_max;index_sum++)
+  if(m!=0.)
     {
-      //z_nu = pow(index_sum*a*m/2./Tnu_0,2);
-      x = index_sum*a*m/Tnu_0 ; 
-      //  y = yn(n,x);
-      Bessel2 = gsl_sf_bessel_Yn(n,x);
-      Struve0 = struve(param0,x);
-      Struve1 = struve(param1,x);
-      //printf("Y2 = %1.12e  H0 = %e H1 = %e at x = %1.12e \n",Bessel2,Struve0,Struve1,x);
-      result += pow(-1.,index_sum+1)/pow(x,3)*( pow(x,2) + _PI_*( pow(x,2) - 3.)*( x*(Bessel2 + Struve0)/2. - Struve1 ));
+      for (index_sum=1;index_sum<index_sum_max;index_sum++)
+	{
+	  x = index_sum*a*m/Tnu_0 ; 
+	  Bessel2 = gsl_sf_bessel_Yn(n,x);
+	  Struve0 = struve(param0,x);
+	  Struve1 = struve(param1,x);
+	  result += pow(-1.,index_sum)*(3.e0 - pow(x,2))/pow(x,3)*( -2.e0*pow(x,2)/(3.e0-pow(x,2))/_PI_ + x*(Bessel2 + Struve0) - 2.e0*Struve1 );
+	}
+      result = 8*_PI_*_G_/3.*(g*8.e0*pow(_PI_,3)/pow(_h_P_,3)*pow(_eV_,4)/pow(_c_,7)*pow(_Mpc_over_m_,2))*pow(m,4)*result/12./_PI_;
     }
-  result = 8*_PI_*_G_/3.*g*pow(m,4)*8.*result/48./pow(_PI_,2);
-  
+  else
+    {
+      result = density_neutrino_at_a(a,m)/3.e0;
+    }
+  return result;
+}
+
+double pseudo_pressure_neutrino_at_a(double a,double m)
+{
+  double result;
+  int index_sum;
+  int index_sum_max = 200;//200;
+  double Tnu_0;
+  double Bessel0,Bessel1;
+  double Struve1, Struve0;
+  double struve();
+  double param0,param1;
+  double g,x; 
+
+  Tnu_0 = 2.726e0*pow(4.e0/11.e0,1.e0/3.e0)*_k_B_/1.6e-19; // T_ncdm in eV
+  result = 0.e0;
+  param0 = 0.e0;
+  param1 = 1.e0;
+  g = 2.e0;
+
+  if(m!=0.)
+    {
+      for (index_sum=1;index_sum<index_sum_max;index_sum++)
+	{
+	  x = index_sum*a*m/Tnu_0 ; 
+	  Bessel0 = gsl_sf_bessel_Y0(x);
+	  Bessel1 = gsl_sf_bessel_Y1(x);
+	  Struve0 = struve(param0,x);
+	  Struve1 = struve(param1,x);
+	  result += pow(-1.,index_sum)/pow(x,3)*( -2.e0*(pow(x,2) + pow(x,4))/_PI_ - 3.e0*x*( pow(x,2) - 1.e0 )*(Struve0 - Bessel0) + (pow(x,4) + 3.e0*pow(x,2) - 6.e0)*(Struve1 - Bessel1) );
+	}
+      result = 8*_PI_*_G_/3.*(g*8.e0*pow(_PI_,3)/pow(_h_P_,3)*pow(_eV_,4)/pow(_c_,7)*pow(_Mpc_over_m_,2))*pow(m,4)*result/12./_PI_;
+    }
+  else
+    {
+      result = 2.e0*density_neutrino_at_a(a,m)/3.e0;
+    }  
+  return result;
+}
+
+double number_density_neutrino_at_a(double a)
+{
+  double result;
+  double Tnu_0;
+  double g;
+
+  Tnu_0 = 2.726e0*pow(4.e0/11.e0,1.e0/3.e0)*_k_B_/1.6e-19; // T_ncdm in eV 
+  g = 2.e0;
+
+  result = 8*_PI_*_G_/3.*(g*2.e0*_PI_/pow(_h_P_,3)*pow(_eV_,4)/pow(_c_,7)*pow(_Mpc_over_m_,2))*3.e0*_zeta3_*pow(Tnu_0/a,3)*Tnu_0; // 1/Mpc^2
+
   return result;
 }
 

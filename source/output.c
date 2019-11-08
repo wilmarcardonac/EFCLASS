@@ -1784,7 +1784,9 @@ int output_open_background_file(
       for (n=0; n<pba->N_ncdm; n++){
         sprintf(tmp,"(.)rho_ncdm[%d] [Mpc^-2]",n);
         class_fprintf_columntitle(*backfile,tmp,_TRUE_);
-        sprintf(tmp,"(.)p_ncdm[%d] [Mpc^-2]",n);
+	sprintf(tmp,"(.)p_ncdm[%d] [Mpc^-2]",n);
+        class_fprintf_columntitle(*backfile,tmp,_TRUE_);
+        sprintf(tmp,"(.)pseudo_p_ncdm[%d] [Mpc^-2]",n);
         class_fprintf_columntitle(*backfile,tmp,_TRUE_);
       }
     }
@@ -1829,8 +1831,11 @@ int output_one_line_of_background(
   class_fprintf_double(backfile,pvecback[pba->index_bg_rho_cdm],pba->has_cdm);
   if (pba->has_ncdm == _TRUE_){
     for (n=0; n<pba->N_ncdm; n++,_TRUE_)
-      class_fprintf_double(backfile,pvecback[pba->index_bg_rho_ncdm1+n],_TRUE_);
-      class_fprintf_double(backfile,pvecback[pba->index_bg_p_ncdm1+n],_TRUE_);
+      {
+	class_fprintf_double(backfile,pvecback[pba->index_bg_rho_ncdm1+n],_TRUE_);
+	class_fprintf_double(backfile,pvecback[pba->index_bg_p_ncdm1+n],_TRUE_);
+	class_fprintf_double(backfile,pvecback[pba->index_bg_pseudo_p_ncdm1+n],_TRUE_);
+      }
   }
   class_fprintf_double(backfile,pvecback[pba->index_bg_rho_lambda],pba->has_lambda);
   class_fprintf_double(backfile,pvecback[pba->index_bg_rho_fld],pba->has_fld);

@@ -12,54 +12,26 @@ import matplotlib.pyplot as py
 
 cambunits = (2.726e6)**2
 
-Cl = np.loadtxt('./output/Cl_designer_lcdm_cl.dat',unpack=True)
+#Cl = np.loadtxt('./output/Cl_designer_lcdm_cl.dat',unpack=True)
 
-Cl1 = np.loadtxt('./output/Cl_lcdm_cl.dat',unpack=True)
+#Cl1 = np.loadtxt('./output/Cl_lcdm_cl.dat',unpack=True)
+
+Cl_nu = np.loadtxt('./output/Cl_lcdm_nu_cl.dat',unpack=True)
+
+Cl_nu_CLASS = np.loadtxt('./output/Cl_lcdm_nu_CLASS_cl.dat',unpack=True)
 
 #Cl1 = np.loadtxt('./output/Cl_husawicki_cl.dat',unpack=True)
 #Cl2 = np.loadtxt('./output/Cl_husawicki_cl_old.dat',unpack=True)
 #mPk = np.loadtxt('./output/Cl_fiducial_lensing_ADE_pk.dat',unpack=True)
 #pert = np.loadtxt('./output/Cl_fiducial_lensing_ADE_perturbations_k0_s.dat',unpack=True) 
 
-#BACKGROUND
-#z,propertime,conformaltime,Hubbleoverc,comovingdistance,angdiadist,lumdist,comovsndhrz,rhog,rhob,rhocdm,rhoncdm,rhofld,rhour,rhocrit = np.loadtxt('./output/Cl_fiducial_lensing_ADE_background.dat',unpack=True,usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14])
-
-#a,w,wprime,H,cs2,ceff2,Omegam,OmegaDE,dprho,dm,Vm,dde,Vde,pi,GeffGN,Qeff = np.loadtxt('../output/functions.txt',unpack=True,usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
-
 fig = py.figure()
 
-#py.loglog(1./(1.+z),Hubbleoverc/Hubbleoverc[-1],color='blue')
-
-#py.loglog(a,H,color='red')
-
-#py.xlabel(r'$a$',fontsize='large')
-
-#py.savefig('./output/Hubble.pdf')
-
-#py.close()
-
-# Error file
-#Clbest = np.loadtxt('../data/Cl_bestfit_no_lensing_cl.dat',unpack=True)
-
-# Fiducial model without lensing
-#Clfidnl = np.loadtxt('../data/Cl_fiducial_no_lensing_cl.dat',unpack=True) 
-
-# 1-1
-
-#py.loglog(Clfid[0],Clfid[1],label=r'$\Lambda CDM$')
-py.plot(Cl[0],Cl[1]*cambunits,label=r'$designer$',c='green')
-py.plot(Cl1[0],Cl1[1]*cambunits,label=r'$\Lambda CDM$',c='blue')#'r'$fr0 = -0.06$')
-#py.plot(Cl1[0],Cl1[1]*cambunits,label=r'Hu-Sawicki')#'r'$fr0 = -0.06$')
-#py.plot(Cl2[0],Cl2[1]*cambunits,label=r'Hu-Sawicki old')#'r'$fr0 = -0.06$')
-#py.loglog(Clfid[0],abs(Clfid[1]-Clfidnl[1]),label='fiducial with lensing - fiducial without lensing')
-
-#py.loglog(Clfidnl[0],abs(Clfidnl[1]),label='fiducial without lensing')
-
-#py.loglog(Clbest[0],abs(Clfid[1]-Clbest[1]),label='fiducial with lensing - bestfit without lensing')
+py.plot(Cl_nu_CLASS[0],(Cl_nu[1]-Cl_nu_CLASS[1])/Cl_nu_CLASS[1]*100.,label=r'CLASS vs. Ours',c='black')
 
 py.xlabel(r'$\ell$')
 
-py.ylabel(r'$\ell*(1+\ell) C_\ell/2\pi$')
+py.ylabel(r'$\Delta C_\ell/C_\ell [\%]$')
 
 py.xscale('log')
 
@@ -68,10 +40,28 @@ py.xscale('log')
 #py.ylim(600,1200)
 py.legend(loc=0)
 
-#py.title('Correlation bins 1-1')
+py.savefig('./output/relative_difference_cl.pdf')
+
+py.close()
+
+fig = py.figure()
+
+py.plot(Cl_nu[0],Cl_nu[1]*cambunits,label=r'$\Lambda CDM OURS$',c='blue')
+py.plot(Cl_nu_CLASS[0],Cl_nu_CLASS[1]*cambunits,label=r'$\Lambda CDM CLASS$',c='red')
+
+py.xlabel(r'$\ell$')
+
+py.ylabel(r'$\ell (\ell+1)C_\ell/2\pi$')
+
+py.xscale('log')
+
+#py.xlim(1,30)
+
+#py.ylim(600,1200)
+py.legend(loc=0)
 
 py.savefig('./output/CMB_cl.pdf')
-#py.savefig('correlation_1_1.pdf')
+
 py.close()
 
 exit()
