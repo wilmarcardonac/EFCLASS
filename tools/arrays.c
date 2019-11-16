@@ -589,6 +589,8 @@ int array_spline_table_lines(
     return _FAILURE_;
   }
 
+  if (x_size==2) spline_mode = _SPLINE_NATURAL_; // in the case of only 2 x-values, only the natural spline method is appropriate, for _SPLINE_EST_DERIV_ at least 3 x-values are needed.
+
 
   index_x=0;
 
@@ -748,6 +750,8 @@ int array_logspline_table_lines(
     sprintf(errmsg,"%s(L:%d) Cannot allocate un",__func__,__LINE__);
     return _FAILURE_;
   }
+
+  if (x_size==2) spline_mode = _SPLINE_NATURAL_; // in the case of only 2 x-values, only the natural spline method is appropriate, for _SPLINE_EST_DERIV_ at least 3 x-values are needed.
 
 
   index_x=0;
@@ -909,6 +913,8 @@ int array_spline_table_columns(
     sprintf(errmsg,"%s(L:%d) Cannot allocate un",__func__,__LINE__);
     return _FAILURE_;
   }
+
+  if (x_size==2) spline_mode = _SPLINE_NATURAL_; // in the case of only 2 x-values, only the natural spline method is appropriate, for _SPLINE_EST_DERIV_ at least 3 x-values are needed.
 
   index_x=0;
 
@@ -1079,6 +1085,8 @@ int array_spline_table_columns2(
     return _FAILURE_;
   }
 
+  if (x_size==2) spline_mode = _SPLINE_NATURAL_; // in the case of only 2 x-values, only the natural spline method is appropriate, for _SPLINE_EST_DERIV_ at least 3 x-values are needed.
+
 #pragma omp parallel                                                \
   shared(x,x_size,y_array,y_size,ddy_array,spline_mode,p,qn,un,u)   \
   private(index_y,index_x,sig,dy_first,dy_last)
@@ -1200,6 +1208,8 @@ int array_spline_table_one_column(
     sprintf(errmsg,"%s(L:%d) Cannot allocate u",__func__,__LINE__);
     return _FAILURE_;
   }
+
+  if (x_size==2) spline_mode = _SPLINE_NATURAL_; // in the case of only 2 x-values, only the natural spline method is appropriate, for _SPLINE_EST_DERIV_ at least 3 x-values are needed.
 
   /************************************************/
 
@@ -1333,6 +1343,8 @@ int array_logspline_table_one_column(
     sprintf(errmsg,"%s(L:%d) Cannot allocate u",__func__,__LINE__);
     return _FAILURE_;
   }
+
+  if (x_size==2) spline_mode = _SPLINE_NATURAL_; // in the case of only 2 x-values, only the natural spline method is appropriate, for _SPLINE_EST_DERIV_ at least 3 x-values are needed.
 
   /************************************************/
 
@@ -2259,6 +2271,56 @@ int array_interpolate_growing_closeby(
   return _SUCCESS_;
 }
 
+/**
+  * interpolate to get y(x), when x and y are two columns of the same array, x is arranged in growing order, and the point x is presumably close to the previous point x from the last call of this function.
+  *
+  * Called by background_at_eta(); background_eta_of_z(); background_solve(); thermodynamics_at_z().
+  */
+int array_interpolate_one_growing_closeby(
+		   double * array,
+		   int n_columns,
+		   int n_lines,
+		   int index_x,   /** from 0 to (n_columns-1) */
+		   double x,
+		   int * last_index,
+           int index_y,
+		   double * result,
+		   ErrorMsg errmsg) {
+
+  int inf,sup;
+  double weight;
+
+  inf = *last_index;
+  sup = *last_index+1;
+
+  while (x < *(array+inf*n_columns+index_x)) {
+    inf--;
+    if (inf < 0) {
+      sprintf(errmsg,"%s(L:%d) : x=%e < x_min=%e",__func__,__LINE__,
+	      x,array[index_x]);
+      return _FAILURE_;
+    }
+  }
+  sup = inf+1;
+  while (x > *(array+sup*n_columns+index_x)) {
+    sup++;
+    if (sup > (n_lines-1)) {
+      sprintf(errmsg,"%s(L:%d) : x=%e > x_max=%e",__func__,__LINE__,
+	      x,array[(n_lines-1)*n_columns+index_x]);
+      return _FAILURE_;
+    }
+  }
+  inf = sup-1;
+
+  *last_index = inf;
+
+  weight=(x-*(array+inf*n_columns+index_x))/(*(array+sup*n_columns+index_x)-*(array+inf*n_columns+index_x));
+
+  *result = *(array+inf*n_columns+index_y) * (1.-weight) + *(array+sup*n_columns+index_y) * weight;
+
+  return _SUCCESS_;
+}
+
  /**
   * interpolate to get y_i(x), when x and y_i are all columns of the same array, x is arranged in growing order, and the point x is presumably very close to the previous point x from the last call of this function.
   *
@@ -2278,6 +2340,17 @@ int array_interpolate_spline_growing_closeby(
 
   int inf,sup,i;
   double h,a,b;
+
+  /*
+  if (*last_index < 0) {
+    sprintf(errmsg,"%s(L:%d) problem with last_index =%d < 0",__func__,__LINE__,*last_index);
+    return _FAILURE_;
+  }
+  if (*last_index > (n_lines-1)) {
+    sprintf(errmsg,"%s(L:%d) problem with last_index =%d > %d",__func__,__LINE__,*last_index,n_lines-1);
+    return _FAILURE_;
+  }
+  */
 
   inf = *last_index;
   class_test(inf<0 || inf>(n_lines-1),
