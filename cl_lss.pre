@@ -1,0 +1,5 @@
+l_switch_limber_for_nc_local_over_z =   20000.
+l_switch_limber_for_nc_los_over_z =      1000.
+selection_sampling_bessel =  3.00
+q_linstep =   0.3
+k_max_tau0_over_l_max = 20.00

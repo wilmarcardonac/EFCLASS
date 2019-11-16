@@ -1,0 +1,27 @@
+E
+======================================================================
+ERROR: Failure: ImportError (Matplotlib backend_wx and backend_wxagg require wxPython >=2.8)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/wcardona/software/canopy/lib/python2.7/site-packages/nose/loader.py", line 414, in loadTestsFromName
+    addr.filename, addr.module)
+  File "/home/wcardona/software/canopy/lib/python2.7/site-packages/nose/importer.py", line 47, in importFromPath
+    return self.importFromDir(dir_path, fqname)
+  File "/home/wcardona/software/canopy/lib/python2.7/site-packages/nose/importer.py", line 94, in importFromDir
+    mod = load_module(part_fqname, fh, filename, desc)
+  File "/home/wcardona/projects/Anisotropic-DE/dea/class_public_dea/python/test_class.py", line 80, in <module>
+    import matplotlib.pyplot as plt
+  File "/home/wcardona/software/canopy/lib/python2.7/site-packages/matplotlib/pyplot.py", line 109, in <module>
+    _backend_mod, new_figure_manager, draw_if_interactive, _show = pylab_setup()
+  File "/home/wcardona/software/canopy/lib/python2.7/site-packages/matplotlib/backends/__init__.py", line 32, in pylab_setup
+    globals(),locals(),[backend_name],0)
+  File "/home/wcardona/software/canopy/lib/python2.7/site-packages/matplotlib/backends/backend_wxagg.py", line 10, in <module>
+    from . import backend_wx    # already uses wxversion.ensureMinimal('2.8')
+  File "/home/wcardona/software/canopy/lib/python2.7/site-packages/matplotlib/backends/backend_wx.py", line 76, in <module>
+    raise ImportError(missingwx)
+ImportError: Matplotlib backend_wx and backend_wxagg require wxPython >=2.8
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (errors=1)
