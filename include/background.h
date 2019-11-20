@@ -59,10 +59,7 @@ struct background
 		     not [delta p/delta rho] in the synchronous or
 		     newtonian gauge!!!) */
 
-  double b_pi; /* Dark Energy Anisotropic stress parameter for designer model w = -1 */
-  double bhs; /* PARAMETER IN THE HU-SAWICKY MODEL WITH SAVVAS' PARAMETRISATION */
-  double c0_des; /* Dark Energy Anisotropic stress parameter for HORNDESKI designer model w = -1 */
-  double j0_des; /* Dark Energy Anisotropic stress parameter for HORNDESKI designer model w = -1 */
+  double b_pi; /* Dark Energy Anisotropic stress parameter */
 
   double Omega0_ur; /**< \f$ \Omega_{0 \nu r} \f$ : ultra-relativistic neutrinos */
 
@@ -147,18 +144,6 @@ struct background
 
   int index_bg_Omega_r;       /**< relativistic density fraction (\f$ \Omega_{\gamma} + \Omega_{\nu r} \f$) */
 
-  int index_bg_w_fR;          /**< EQUATION OF STATE FOR EFFECTIVE FLUID IN f(R) PARAMETRISATION */
-  int index_bg_w_prime_fR;    /**< ITS DERIVATIVE W.R.T SCALE FACTOR */
-  int index_bg_conformal_H_fR;/**< CONFORMAL HUBBLE PARAMETER IN f(R) PARAMETRISATION */
-  int index_bg_derivative_conformal_H_fR;/**< ITS DERIVATIVE W.R.T SCALE FACTOR */
-  int index_bg_f_fR;          /**< f(R(a)) */
-  int index_bg_F_fR;          /**< F(a) */
-  int index_bg_Fprime_fR;     /**< DERIVATIVE OF F W.R.T SCALE FACTOR  */
-  int index_bg_Fdoubleprime_fR;/**< SECOND DERIVATIVE OF F W.R.T SCALE FACTOR */
-  int index_bg_FR_fR;         /**< DERIVATIVE OF F W.R.T. RICCI SCALAR R */
-  int index_bg_FRprime_fR;    /**< DERIVATIVE OF FR W.R.T SCALE FACTOR */
-  int index_bg_FRdoubleprime_fR;/**< SECOND DERIVATIVE OF FR W.R.T. SCALE FACTOR */
-
   /* end of vector in normal format, now quantitites in long format */
 
   int index_bg_rho_crit;      /**< critical density */
@@ -235,7 +220,6 @@ struct background
   short has_fld;       /**< presence of fluid with constant w and cs2? */
   short has_ur;        /**< presence of ultra-relativistic neutrinos/relics? */
   short has_curvature; /**< presence of global spatial curvature? */
-  short has_fR;        /**< presence of effective fluid f(R) parametrisation */ 
 
   //@}
 

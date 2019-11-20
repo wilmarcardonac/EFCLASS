@@ -336,7 +336,9 @@ struct perturbs
   double e_pi; /* Dark Energy Anisotropic stress parameter */
   double f_pi; /* Dark Energy Anisotropic stress parameter */
   double g_pi; /* Dark Energy Anisotropic stress parameter */
-
+  double log10g_pi; /* LOG10 DARK ENERGY ANISOTROPIC STRESS PARAMETER */
+  double ceff2; /* DARK ENERGY EFFECTIVE SOUND SPEED */
+  double log10ceff2; /* LOG10 DARK ENERGY EFFECTIVE SOUND SPEED */
 
   //@}
 
@@ -377,8 +379,6 @@ struct perturb_vector
   int index_pt_theta_cdm; /**< cdm velocity */
   int index_pt_delta_fld;  /**< dark energy density */
   int index_pt_theta_fld;  /**< dark energy velocity */
-  /*  int index_pt_DE_pressure_perturbation_fR;  DE PRESSURE PERTURBATION (WITHOUT RATIO OF DENSITIES AND DENSITY PERTURBATION) */
-  /*  int index_pt_DE_anisotropic_stress_fR;  EXPLICIT TIME DEPENDENCE OF THE DE ANISOTROPIC STRESS  */
   int index_pt_delta_ur; /**< density of ultra-relativistic neutrinos/relics */
   int index_pt_theta_ur; /**< velocity of ultra-relativistic neutrinos/relics */
   int index_pt_shear_ur; /**< shear of ultra-relativistic neutrinos/relics */

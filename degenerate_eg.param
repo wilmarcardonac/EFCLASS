@@ -1,0 +1,47 @@
+#------Experiments to test (separated with commas)-----
+
+data.experiments=['euclid_galaxy_cl']
+
+#------ Parameter list -------
+# data.parameters[class name] = [mean, min, max, 1-sigma, scale, role]
+# - if min max irrelevant, put to -1 or None (if you want a boundary of -1, use -1.0)
+# - if fixed, put 1-sigma to 0
+# - if scale irrelevant, put to 1, otherwise to the appropriate factor
+# - role is either 'cosmo', 'nuisance' or 'derived'
+
+# Cosmological parameters list
+data.parameters['omega_b']      = [2.207, -1, -1, 0.033, 0.01, 'cosmo']
+data.parameters['omega_cdm']    = [0.1196, -1, -1, 0.0031, 1, 'cosmo']
+data.parameters['n_s']          = [0.9616, -1, -1, 0.0094, 1, 'cosmo']
+data.parameters['A_s']          = [2.23, -1, -1, 0.16, 1e-9, 'cosmo']
+data.parameters['h']            = [0.674, -1, -1, 0.014, 1, 'cosmo']
+data.parameters['tau_reio']     = [0.097, -1, -1, 0.038, 1, 'cosmo']
+data.parameters['m_ncdm']       = [0.10, 0, 5, 0.05, 1, 'cosmo']
+
+# Nuisance parameter list, same call, except the name does not have to be a class name
+# For Euclid:
+data.parameters['epsilon']      = [0,-1,-1,0,1,'nuisance']
+
+# Derived parameter list
+data.parameters['Omega_Lambda'] = [0,       -1, -1, 0,1,  'derived']
+
+# Other class parameters (fixed parameters, precision parameters, etc.)
+data.cosmo_arguments['sBBN file'] = data.path['cosmo']+'bbn/sBBN.dat'
+data.cosmo_arguments['N_eff']     = 0
+data.cosmo_arguments['N_ncdm']    = 1
+data.cosmo_arguments['deg_ncdm']    = 3
+data.cosmo_arguments['dNdz_selection']  = 'analytic'
+# Precision parameters for LSS computation with large bins
+data.cosmo_arguments['l_switch_limber_for_cl_density_over_z']   = 10000.
+data.cosmo_arguments['selection_sampling_bessel']               = .3
+data.cosmo_arguments['q_linstep']            			= 1000.
+data.cosmo_arguments['k_max_tau0_over_l_max']    		= 2.
+data.cosmo_arguments['number count contributions']              = 'density, rsd, lensing'
+data.cosmo_arguments['non linear']          			= 'halofit'
+
+#------ Mcmc parameters ----
+# Number of steps taken, by default (overwritten by the -N command)
+data.N=10
+# Number of accepted steps before writing to file the chain. Larger means less
+# access to disc, but this is not so much time consuming.
+data.write_step=5

@@ -1,0 +1,19 @@
+## Limber approximation works bad especially for narrow z-bins and for cross-correlations between bins
+#l_switch_limber_for_cl_density_over_z=10000.
+
+## Reduce the bessel sampling to obtain faster and less memory requiring results
+#selection_sampling_bessel=.3
+
+
+## For large redshift bin, larger q_linstep values are still accurate (increase speed considerably)
+#q_linstep=1000.
+
+## Increase for good nCl_lensing accuracy at high l's
+#k_max_tau0_over_l_max= 2.
+
+
+#Use higher precision for error El's
+l_switch_limber_for_cl_density_over_z=10000.
+selection_sampling_bessel=.3
+q_linstep=1000.
+k_max_tau0_over_l_max= 2.

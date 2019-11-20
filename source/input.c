@@ -514,46 +514,42 @@ int input_init(
 
   if ((flag1 == _FALSE_) && (flag2 == _FALSE_)) {
     pba->Omega0_lambda = 1.-pba->Omega0_k-pba->Omega0_g-pba->Omega0_ur-pba->Omega0_b-pba->Omega0_cdm-pba->Omega0_ncdm_tot;
-    class_read_double("b_pi",pba->b_pi);
-    class_read_double("bhs",pba->bhs);
-    class_read_double("c0_des",pba->c0_des);
-    class_read_double("j0_des",pba->j0_des);
   }
   else {
     if (flag1 == _TRUE_) {
       pba->Omega0_lambda= param1;
       pba->Omega0_fld = 1. - pba->Omega0_k - param1 - Omega_tot;
-      class_read_double("b_pi",pba->b_pi);
-      class_read_double("bhs",pba->bhs);
-      class_read_double("c0_des",pba->c0_des);
-      class_read_double("j0_des",pba->j0_des);
     }
     if (flag2 == _TRUE_) {
       pba->Omega0_lambda= 1. - pba->Omega0_k - param2 - Omega_tot;
       pba->Omega0_fld = param2;
-      class_read_double("b_pi",pba->b_pi);
-      class_read_double("bhs",pba->bhs);
-      class_read_double("c0_des",pba->c0_des);
-      class_read_double("j0_des",pba->j0_des);
     }
   }
 
-  if (pba->Omega0_fld != 0.)
-    {
-      class_read_double("w0_fld",pba->w0_fld);
-      class_read_double("wa_fld",pba->wa_fld);
-      class_read_double("cs2_fld",pba->cs2_fld);
-      class_read_double("e_pi",ppt->e_pi);
-      class_read_double("f_pi",ppt->f_pi);
-      class_read_double("g_pi",ppt->g_pi);
-    /*    class_test((pba->bhs !=0.) && ((ppt->e_pi != 0.) || (ppt->f_pi != 0.) || (ppt->g_pi != 0.)),errmsg,
-    "WHEN RUNNING SAVVAS PARAMETRISATION FOR DARK ENERGY ANISOTROPIC STRESS, PARAMETERS OF OTHER PARAMETRISATIONS MUST BE SET TO ZERO\n"); 
-    if (pba->bhs != 0.) {
+  if (pba->Omega0_fld != 0.) {
+    class_read_double("w0_fld",pba->w0_fld);
+    class_read_double("wa_fld",pba->wa_fld);
+    //    class_read_double("cs2_fld",pba->cs2_fld);
+    class_read_double("log10ceff2",ppt->log10ceff2);
+    ppt->ceff2 = pow(10.,ppt->log10ceff2);
+    class_read_double("e_pi",ppt->e_pi);
+    class_read_double("f_pi",ppt->f_pi);
+    class_read_double("log10g_pi",ppt->log10g_pi);
+    ppt->g_pi = pow(10.,ppt->log10g_pi);
+    pba->cs2_fld = ppt->ceff2 + 2.*ppt->f_pi/3.;
+    class_test( ppt->ceff2 < 0. || ppt->ceff2 > 1.,errmsg,
+		"NEGATIVE OR SUPERLUMINAL DARK ENERGY EFFECTIVE SOUND SPEED %e; cs2_fld = %e; f_pi = %e",ppt->ceff2,pba->cs2_fld,ppt->f_pi \
+		);
+    //    class_read_double("g_pi",ppt->g_pi);
+    class_read_double("b_pi",pba->b_pi);
+    class_test((pba->b_pi !=0.) && ((ppt->e_pi != 0.) || (ppt->f_pi != 0.) || (ppt->g_pi != 0.)),errmsg,
+    "WHEN RUNNING SAVVAS PARAMETRISATION FOR DARK ENERGY ANISOTROPIC STRESS, PARAMETERS OF OTHER PARAMETRISATIONS MUST BE SET TO ZERO"); 
+    if (pba->b_pi != 0.) {
       printf("THIS PARAMETRISATION OF DARK ENERGY ANISOTROPIC STRESS HAS VARYING SOUND SPEED AND VARYING EQUATION OF STATE\n");
       printf("'w' IS IN GENERAL DIFFERENT FROM THE USUAL 'w_0 + w_a*(1-a)'\n");
       printf("THEREFORE THE GIVEN PARAMETERS 'w0_fld', 'wa_fld', and 'cs2_fld' ARE NOT USED\n");
-      }*/
     }
+  }
 
   /* scale factor today (arbitrary) */
   class_read_double("a_today",pba->a_today);
@@ -800,10 +796,11 @@ int input_init(
       class_call(parser_read_double(pfc,"number count error",&param1,&flag1,errmsg),
                  errmsg,
                  errmsg);
-      class_test(param1<0.,
-                 errmsg,
-                 "number count error parameter, determining error power spectra El, should be positive");
+
       if (flag1 == _TRUE_){
+	class_test(param1<0.,
+		   errmsg,
+		   "number count error parameter, determining error power spectra El, should be positive");
         ptr->has_el_number_count = _TRUE_;
         pnl->method=nl_halofit;
         ppt->has_nl_corrections_based_on_delta_m = _TRUE_;
@@ -2120,9 +2117,6 @@ int input_default_params(
   pba->wa_fld=0.;
   pba->cs2_fld=1.;
   pba->b_pi=0.; 
-  pba->bhs=0.;
-  pba->c0_des=0.; 
-  pba->j0_des=0.; 
 
   /** - thermodynamics structure */
 
@@ -2207,8 +2201,9 @@ int input_default_params(
   ppt->mg_beta2=1.;
   ppt->has_mg=_FALSE_;
   ppt->e_pi=0.; 
-  ppt->f_pi=0.; 
-  ppt->g_pi=0.; 
+  ppt->f_pi=0.;
+  ppt->log10g_pi = -1.e10; 
+  //  ppt->g_pi=0.; 
 
 
   ppt->selection_num=1;

@@ -12,12 +12,12 @@ import matplotlib.pyplot as py
 
 cambunits = (2.726e6)**2
 
-Cl = np.loadtxt('./output/Cl_designer_lcdm_cl.dat',unpack=True)
+Cl = np.loadtxt('./output/Cl_lcdm_cl.dat',unpack=True)
 
-Cl1 = np.loadtxt('./output/Cl_lcdm_cl.dat',unpack=True)
+#Cl1 = np.loadtxt('./output/Cl_designer_lcdm_cl.dat',unpack=True)
 
-#Cl1 = np.loadtxt('./output/Cl_husawicki_cl.dat',unpack=True)
-#Cl2 = np.loadtxt('./output/Cl_husawicki_cl_old.dat',unpack=True)
+Cl1 = np.loadtxt('./output/Cl_husawicki_cl.dat',unpack=True)
+Cl2 = np.loadtxt('./output/Cl_husawicki_cl_old.dat',unpack=True)
 #mPk = np.loadtxt('./output/Cl_fiducial_lensing_ADE_pk.dat',unpack=True)
 #pert = np.loadtxt('./output/Cl_fiducial_lensing_ADE_perturbations_k0_s.dat',unpack=True) 
 
@@ -47,9 +47,9 @@ fig = py.figure()
 # 1-1
 
 #py.loglog(Clfid[0],Clfid[1],label=r'$\Lambda CDM$')
-py.plot(Cl[0],Cl[1]*cambunits,label=r'$designer$',c='green')
-py.plot(Cl1[0],Cl1[1]*cambunits,label=r'$\Lambda CDM$',c='blue')#'r'$fr0 = -0.06$')
-#py.plot(Cl1[0],Cl1[1]*cambunits,label=r'Hu-Sawicki')#'r'$fr0 = -0.06$')
+py.plot(Cl[0],Cl[1]*cambunits,label=r'$\Lambda CDM$')
+#py.plot(Cl1[0],Cl1[1]*cambunits,label=r'designer $w=-1$')#'r'$fr0 = -0.06$')
+py.plot(Cl1[0],Cl1[1]*cambunits,label=r'Hu-Sawicki')#'r'$fr0 = -0.06$')
 #py.plot(Cl2[0],Cl2[1]*cambunits,label=r'Hu-Sawicki old')#'r'$fr0 = -0.06$')
 #py.loglog(Clfid[0],abs(Clfid[1]-Clfidnl[1]),label='fiducial with lensing - fiducial without lensing')
 
@@ -63,9 +63,9 @@ py.ylabel(r'$\ell*(1+\ell) C_\ell/2\pi$')
 
 py.xscale('log')
 
-#py.xlim(1,30)
+py.xlim(1,50)
 
-#py.ylim(600,1200)
+py.ylim(600,1400)
 py.legend(loc=0)
 
 #py.title('Correlation bins 1-1')

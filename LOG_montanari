@@ -1,0 +1,17 @@
+Options for nCl output added as input:
+
+- Bin-dependent bias:
+    selection_bias= 1., 1.5, 2., ...
+
+- Bin-dependent magnification bias
+    selection_magnification_bias = 0.2, 0.5, 1.0, ...
+
+- Errors on Cl's (require halofit), uncomment
+    number count error = 0.05
+
+- Modified gravity parameter changing eta=phi/psi as ppt->mg_eta = (1.+ppt->mg_beta2*k2*a2)/(1.+k2*a2) (see arXiv:1106.4543). So far implemented only for Einstein equations in the Newtonian gauge.
+MG_beta2=0.
+
+- bug fixed (warnings and f_evo)
+
+- The option 'dNdz_selection = analytic' has been replaced by 'analytic_euclid' or 'analytic_ska'

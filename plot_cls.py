@@ -4,68 +4,16 @@ import numpy as np
 import matplotlib.pyplot as py
 #import pylab as py
 
-################################
-# Loading data files into arrays
-################################ 
+# Loading data files into arrays 
 
-# LCDM
+# Fiducial model 
+Clfid = np.loadtxt('./output/Cl_fiducial_lensing_cl.dat',unpack=True)
+mPkfid = np.loadtxt('./output/Cl_fiducial_lensing_pk.dat',unpack=True)
+pertfid = np.loadtxt('./output/Cl_fiducial_lensing_perturbations_k0_s.dat',unpack=True) 
 
-cambunits = (2.726e6)**2
-
-#BACKGROUND
-z,propertime,conformaltime,Hubbleoverc,comovingdistance,angdiadist,lumdist,comovsndhrz,rhog,rhob,rhocdm,rhoncdm,pncdm,rhofld,rhour,rhocrit = np.loadtxt('./output/Cl_lcdm_nu_background.dat',unpack=True,usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
-
-#a,w,wprime,H,cs2,ceff2,Omegam,OmegaDE,dprho,dm,Vm,dde,Vde,pi,GeffGN,Qeff = np.loadtxt('../output/functions.txt',unpack=True,usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
-
-fig = py.figure()
-
-#py.loglog(1./(1.+z),Hubbleoverc/Hubbleoverc[-1],color='blue')
-
-py.loglog(1./(1.+z),rhoncdm,color='red',label=r'$\rho_{ncdm}$')
-
-py.loglog(1./(1.+z),pncdm,color='red',label=r'$p_{ncdm}$',ls='dashed')
-
-py.loglog(1./(1.+z),rhog,color='blue',label=r'$\rho_{rad}$')
-
-py.loglog(1./(1.+z),rhocdm,color='green',label=r'$\rho_{cdm}$')
-
-py.loglog(1./(1.+z),rhob,color='black',label=r'$\rho_{b}$')
-
-py.loglog(1./(1.+z),rhofld,color='orange',label=r'$\rho_{\Lambda}$')
-
-py.loglog(1./(1.+z),rhour,color='purple',label=r'$\rho_{ur}$')
-
-py.xlabel(r'$a$',fontsize='large')
-
-py.ylabel(r'$8 \pi G \rho /3$',fontsize='large')
-
-py.legend(loc=0)
-
-py.savefig('./output/rhoncdm.pdf')
-
-py.close()
-
-fig = py.figure()
-
-py.plot(1./(1.+z),pncdm/rhoncdm,color='red',label=r'$w_{ncdm}$')
-
-py.hlines(0.,1.e-14,1.,color='black',label=r'$w_{cdm}$',linestyles='dotted')
-
-py.hlines(1./3.,1.e-14,1.,color='blue',label=r'$w_{rad}$',linestyles='dashed')
-
-py.xlabel(r'$a$',fontsize='large')
-
-py.ylabel(r'$w_{ncdm}$',fontsize='large')
-
-py.xscale('log')
-
-py.ylim(-1.,1.)
-
-py.legend(loc=0)
-
-py.savefig('./output/wncdm.pdf')
-
-exit()
+Cl = np.loadtxt('./output/Cl_fiducial_lensing_ADE_cl.dat',unpack=True)
+mPk = np.loadtxt('./output/Cl_fiducial_lensing_ADE_pk.dat',unpack=True)
+pert = np.loadtxt('./output/Cl_fiducial_lensing_ADE_perturbations_k0_s.dat',unpack=True) 
 
 # Error file
 #Clbest = np.loadtxt('../data/Cl_bestfit_no_lensing_cl.dat',unpack=True)
@@ -75,11 +23,8 @@ exit()
 
 # 1-1
 
-#py.loglog(Clfid[0],Clfid[1],label=r'$\Lambda CDM$')
-py.plot(Cl[0],Cl[1]*cambunits,label=r'$designer$',c='green')
-py.plot(Cl1[0],Cl1[1]*cambunits,label=r'$\Lambda CDM$',c='blue')#'r'$fr0 = -0.06$')
-#py.plot(Cl1[0],Cl1[1]*cambunits,label=r'Hu-Sawicki')#'r'$fr0 = -0.06$')
-#py.plot(Cl2[0],Cl2[1]*cambunits,label=r'Hu-Sawicki old')#'r'$fr0 = -0.06$')
+py.loglog(Clfid[0],Clfid[1],label=r'$\Lambda CDM$')
+py.loglog(Cl[0],Cl[1],label='Including anisotropic stress')
 #py.loglog(Clfid[0],abs(Clfid[1]-Clfidnl[1]),label='fiducial with lensing - fiducial without lensing')
 
 #py.loglog(Clfidnl[0],abs(Clfidnl[1]),label='fiducial without lensing')
@@ -90,20 +35,16 @@ py.xlabel(r'$\ell$')
 
 py.ylabel(r'$\ell*(1+\ell) C_\ell/2\pi$')
 
-py.xscale('log')
+py.xlim(1,3000)
 
-#py.xlim(1,30)
-
-#py.ylim(600,1200)
+py.ylim(7.e-12,8.e-10)
 py.legend(loc=0)
 
 #py.title('Correlation bins 1-1')
 
-py.savefig('./output/CMB_cl.pdf')
+py.savefig('./output/DEA_cl.pdf')
 #py.savefig('correlation_1_1.pdf')
 py.close()
-
-exit()
 
 py.loglog(mPkfid[0],mPkfid[1],label=r'$\Lambda CDM$')
 py.loglog(mPk[0],mPk[1],label='Including anisotropic stress')

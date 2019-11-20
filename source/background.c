@@ -79,10 +79,6 @@
  */
 
 #include "background.h"
-#include <stdio.h>
-#include <math.h>
-#include <gsl/gsl_sf_hyperg.h>
-#include <gsl/gsl_sf_bessel.h>
 
 /**
  * Background quantities at given conformal time tau.
@@ -440,53 +436,19 @@ int background_indices(
   pba->has_fld = _FALSE_;
   pba->has_ur = _FALSE_;
   pba->has_curvature = _FALSE_;
-  pba->has_fR = _FALSE_;
 
   if (pba->Omega0_cdm != 0.)
-    {
-      pba->has_cdm = _TRUE_;
-      printf("Omega0_cdm IS = %10e\n",pba->Omega0_cdm);
-    }
+    pba->has_cdm = _TRUE_;
 
   if (pba->Omega0_ncdm_tot != 0.)
     pba->has_ncdm = _TRUE_;
 
   if (pba->Omega0_lambda != 0.)
-    {
-      pba->has_lambda = _TRUE_;
-      printf("Omega0_lambda IS = %.5e\n",pba->Omega0_lambda);
-      if ( (pba->b_pi != 0.) && (pba->bhs != 0.) )
-	{
-	  printf("ONE CAN ONLY GIVE b_pi OR bhs \n");
-	  exit(1);
-	}
-      else
-	{
-	  if (pba->b_pi != 0.)
-	    {
-	      if ( (pba->c0_des != 0.) || (pba->j0_des != 0.) )
-		{
-		  pba->has_fR = _TRUE_;
-		  printf("RUNNING HORNDESKI DESIGNER MODEL WITH w=-1 \n");
-		}
-	      else
-		{
-		  pba->has_fR = _TRUE_;
-		  printf("RUNNING f(R) DESIGNER MODEL WITH w=-1 \n");
-		}
-	    }
-	  if (pba->bhs != 0.)
-	    {
-	      pba->has_fR = _TRUE_;
-	      printf("RUNNING HU-SAWICKI MODEL WITH SAVVAS PARAMETRISATION \n");
-	    }
-	}
-    }
+    pba->has_lambda = _TRUE_;
+
   if (pba->Omega0_fld != 0.)
-    {
-      pba->has_fld = _TRUE_;
-      printf("Omega0_fld IS = %.5e\n",pba->Omega0_fld);
-    }
+    pba->has_fld = _TRUE_;
+
   if (pba->Omega0_ur != 0.)
     pba->has_ur = _TRUE_;
 
@@ -527,18 +489,7 @@ int background_indices(
   class_define_index(pba->index_bg_rho_lambda,pba->has_lambda,index_bg,1);
 
   /* - index for fluid */
-  //  class_define_index(pba->index_bg_rho_fld,pba->has_fld,index_bg,1);
-  class_define_index(pba->index_bg_w_fR,pba->has_fR,index_bg,1);
-  //class_define_index(pba->index_bg_w_prime_fR,pba->has_fR,index_bg,1);
-  //class_define_index(pba->index_bg_conformal_H_fR,pba->has_fR,index_bg,1);
-  //class_define_index(pba->index_bg_derivative_conformal_H_fR,pba->has_fR,index_bg,1);
-  //class_define_index(pba->index_bg_f_fR,pba->has_fR,index_bg,1);
-  class_define_index(pba->index_bg_F_fR,pba->has_fR,index_bg,1);
-  class_define_index(pba->index_bg_Fprime_fR,pba->has_fR,index_bg,1);
-  //class_define_index(pba->index_bg_Fdoubleprime_fR,pba->has_fR,index_bg,1);
-  class_define_index(pba->index_bg_FR_fR,pba->has_fR,index_bg,1);
-  //class_define_index(pba->index_bg_FRprime_fR,pba->has_fR,index_bg,1);
-  //class_define_index(pba->index_bg_FRdoubleprime_fR,pba->has_fR,index_bg,1);
+  class_define_index(pba->index_bg_rho_fld,pba->has_fld,index_bg,1);
 
   /* - index for ultra-relativistic neutrinos/species */
   class_define_index(pba->index_bg_rho_ur,pba->has_ur,index_bg,1);
@@ -673,19 +624,6 @@ int background_functions(
   double rho_ncdm,p_ncdm,pseudo_p_ncdm;
   /* index for n_ncdm species */
   int n_ncdm;
-  /* MATTER PARAMETER DENSITY */
-  double om0,or0;
-  /* COSMOLOGICAL CONSTANT */
-  //double Lambda;
-  /* CONSTANTS f(R) */
-  double des_c0;//,a2,b,c,a3;
-  //double R0,x0,y0,alpha_fR;
-  //  double cH,cH_prime,cH0,cH0_prime,cH_twoprime,cH_threeprime,R_prime,R_twoprime,F_prime,F_doubleprime;
-  //double F_prime;
-  double fR0HS,HSb;
-  /* VARIABLES f(R) */
-  //double x,y,R;
-
 
   /** - initialize local variables */
   rho_tot = 0.;
@@ -693,20 +631,6 @@ int background_functions(
   rho_r=0.;
   rho_m=0.;
   a_rel = a / pba->a_today;
-  om0 = pba->Omega0_b+pba->Omega0_cdm;
-  or0 = pba->Omega0_g;
-  //Lambda = 3.*pow(pba->H0,2)*(1. - Omega0_M);
-  des_c0 = (-7. + sqrt(73.))/12.;
-  fR0HS = pba->bhs;//-0.1 ;//59285033891483;
-  HSb = -(fR0HS/(pow(-1+om0+or0,2)/pow(-4+3*om0+4*or0,2)+sqrt((pow(-1+om0+or0,3)*((-1+om0+or0)*pow(-4+3*om0+4*or0,3)-4*fR0HS*(135*pow(om0,4)+128*pow(-1+or0,4)+96*om0*pow(-1+or0,2)*(-5+6*or0)+36*pow(om0,3)*(-11+16*or0)+12*pow(om0,2)*(-1+or0)*(-51+74*or0))))/pow(-4+3*om0+4*or0,7))));
-
-  //-(pba->bhs*pow(4.-3.*om0,2.))/(2.*pow(1.-om0,2.));
-
-  //a2 = 1. + b2;
-  //a3 = 2. + b2;
-  //b = 1.5 + b2; 
-  //c = 13./6. + 2.*b2;
-
 
   class_test(a_rel <= 0.,
              pba->error_message,
@@ -776,54 +700,20 @@ int background_functions(
   }
 
   /* Lambda */
-  if (pba->has_lambda == _TRUE_)
-    {
-      if (pba->has_fR == _TRUE_)
-	{
-	  if (pba->bhs != 0.)
-	    {
-	      /* w(a) */
-	      pvecback[pba->index_bg_w_fR] = -1-(4*pow(a,2)*HSb*(-1+om0+or0)*(-9*a*pow(om0,3)-7*pow(om0,2)*or0-63*pow(a,4)*pow(om0,2)*(-1+om0+or0)-88*pow(a,3)*om0*or0*(-1+om0+or0)+72*pow(a,7)*om0*pow(-1+om0+or0,2)+32*pow(a,6)*or0*pow(-1+om0+or0,2)))/(3.*pow(om0-4*pow(a,3)*(-1+om0+or0),4))-(2*pow(a,4)*pow(HSb,2)*(1-om0-or0)*(-1+om0+or0)*(327*pow(a,2)*pow(om0,7)+520*a*pow(om0,6)*or0+196*pow(om0,5)*pow(or0,2)-19944*pow(a,5)*pow(om0,6)*(-1+om0+or0)-32960*pow(a,4)*pow(om0,5)*or0*(-1+om0+or0)-13328*pow(a,3)*pow(om0,4)*pow(or0,2)*(-1+om0+or0)-195084*pow(a,8)*pow(om0,5)*pow(-1+om0+or0,2)-447296*pow(a,7)*pow(om0,4)*or0*pow(-1+om0+or0,2)-244352*pow(a,6)*pow(om0,3)*pow(or0,2)*pow(-1+om0+or0,2)+55344*pow(a,11)*pow(om0,4)*pow(-1+om0+or0,3)-417664*pow(a,10)*pow(om0,3)*or0*pow(-1+om0+or0,3)-503296*pow(a,9)*pow(om0,2)*pow(or0,2)*pow(-1+om0+or0,3)+225792*pow(a,14)*pow(om0,3)*pow(-1+om0+or0,4)+363008*pow(a,13)*pow(om0,2)*or0*pow(-1+om0+or0,4)-243712*pow(a,12)*om0*pow(or0,2)*pow(-1+om0+or0,4)-239616*pow(a,17)*pow(om0,2)*pow(-1+om0+or0,5)-53248*pow(a,16)*om0*or0*pow(-1+om0+or0,5)+8192*pow(a,15)*pow(or0,2)*pow(-1+om0+or0,5)+122880*pow(a,20)*om0*pow(-1+om0+or0,6)+49152*pow(a,19)*or0*pow(-1+om0+or0,6)))/(3.*pow(om0-4*pow(a,3)*(-1+om0+or0),9));
+  if (pba->has_lambda == _TRUE_) {
+    pvecback[pba->index_bg_rho_lambda] = pba->Omega0_lambda * pow(pba->H0,2);
+    rho_tot += pvecback[pba->index_bg_rho_lambda];
+    p_tot -= pvecback[pba->index_bg_rho_lambda];
+  }
 
-	      /*-1.-(12.*pow(a,3.)*pow(pba->a_today,3.)*HSb*(-1. + om0)*om0*(pow(a,3.)*(-1. + om0) - pow(pba->a_today,3.)*om0)*(8.*pow(a,3.)*(-1. + om0) + pow(pba->a_today,3.)*om0))/pow(-4.*pow(a,3.)*(-1. + om0) + pow(pba->a_today,3.)*om0,4.) + (2.*pow(a,6.)*pow(pba->a_today,3.)*pow(HSb,2.)*pow(-1. + om0,2.)*om0*(-40960.*pow(a,18.)*pow(-1. + om0,6.) +79872.*pow(a,15.)*pow(pba->a_today,3.)*pow(-1. + om0,5.)*om0 -75264.*pow(a,12.)*pow(pba->a_today,6.)*pow(-1. + om0,4.)*pow(om0,2.) -18448.*pow(a,9.)*pow(pba->a_today,9.)*pow(-1. + om0,3.)*pow(om0,3.) +65028*pow(a,6.)*pow(pba->a_today,12.)*pow(-1. + om0,2.)*pow(om0,4.) +6648.*pow(a,3.)*pow(pba->a_today,15.)*(-1. + om0)*pow(om0,5.) - 109.*pow(pba->a_today,1.)*pow(om0,6.)))/pow(4.*pow(a,3.)*(-1. + om0) -pow(pba->a_today,3.)*om0,9.); */
-
-	      //-1 - 12*HSb*(-1 + om0)*om0*pow(a,3)*(-om0 + (-1 + om0)*pow(a,3))*(om0 + 8*(-1 + om0)*pow(a,3))*pow(om0 - 4*(-1 + om0)*pow(a,3),-4) - 
-	      //2*om0*pow(a,6)*pow(HSb,2)*pow(-1 + om0,2)*(-79872*om0*pow(a,15)*pow(-1 + om0,5) + 40960*pow(a,18)*pow(-1 + om0,6) + 75264*pow(a,12)*pow(-1 + om0,4)*pow(om0,2) + 18448*pow(a,9)*pow(-1 + om0,3)*pow(om0,3) - 65028*pow(a,6)*pow(-1 + om0,2)*pow(om0,4) - 6648*(-1 + om0)*pow(a,3)*pow(om0,5) + 109*pow(om0,6))*pow(-om0 + 4*(-1 + om0)*pow(a,3),-9);
-	  /* w_prime(a) */
-	    /*	    pvecback[pba->index_bg_w_prime_fR] = 12*HSb*(-1 + om0)*om0*pow(a,2)*(18*HSb*pow(a,6)*pow(-1 + om0,2)*(-79872*om0*pow(a,15)*pow(-1 + om0,5) + 40960*pow(a,18)*pow(-1 + om0,6) + 75264*pow(a,12)*pow(-1 + om0,4)*pow(om0,2) + 18448*pow(a,9)*pow(-1 + om0,3)*pow(om0,3) - 65028*pow(a,6)*pow(-1 + om0,2)*pow(om0,4) - 6648*(-1 + om0)*pow(a,3)*pow(om0,5) + 109*pow(om0,6))*pow(om0 - 4*(-1 + om0)*pow(a,3),-10) - 48*(-1 + om0)*pow(a,3)*(-om0 + (-1 + om0)*pow(a,3))*(om0 + 8*(-1 + om0)*pow(a,3))*pow(om0 - 4*(-1 + om0)*pow(a,3),-5) - 24*(-1 + om0)*pow(a,3)*(-om0 + (-1 + om0)*pow(a,3))*pow(om0 - 4*(-1 + om0)*pow(a,3),-4) - 3*(-1 + om0)*pow(a,3)*(om0 + 8*(-1 + om0)*pow(a,3))*pow(om0 - 4*(-1 + om0)*pow(a,3),-4) - 3*(-om0 + (-1 + om0)*pow(a,3))*(om0 + 8*(-1 + om0)*pow(a,3))*pow(om0 - 4*(-1 + om0)*pow(a,3),-4) - 12*HSb*pow(a,6)*pow(-1 + om0,2)*(-16640*om0*pow(a,12)*pow(-1 + om0,4) + 10240*pow(a,15)*pow(-1 + om0,5) + 12544*pow(a,9)*pow(-1 + om0,3)*pow(om0,2) + 2306*pow(a,6)*pow(-1 + om0,2)*pow(om0,3) - 5419*(-1 + om0)*pow(a,3)*pow(om0,4) - 277*pow(om0,5))*pow(-om0 + 4*(-1 + om0)*pow(a,3),-9) - HSb*(-1 + om0)*pow(a,3)*(-79872*om0*pow(a,15)*pow(-1 + om0,5) + 40960*pow(a,18)*pow(-1 + om0,6) + 75264*pow(a,12)*pow(-1 + om0,4)*pow(om0,2) + 18448*pow(a,9)*pow(-1 + om0,3)*pow(om0,3) - 65028*pow(a,6)*pow(-1 + om0,2)*pow(om0,4) - 6648*(-1 + om0)*pow(a,3)*pow(om0,5) + 109*pow(om0,6))*pow(-om0 + 4*(-1 + om0)*pow(a,3),-9)); */
-
-	      pvecback[pba->index_bg_rho_lambda] = ((1-om0-or0+(2*pow(a,2)*HSb*pow(-1+om0+or0,2)*(-6*a*pow(om0,2)-7*om0*or0+3*pow(a,4)*om0*(-1+om0+or0)+4*pow(a,3)*or0*(-1+om0+or0)+12*pow(a,7)*pow(-1+om0+or0,2)))/pow(-om0+4*pow(a,3)*(-1+om0+or0),3)-(pow(a,5)*pow(HSb,2)*pow(-1+om0+or0,3)*(-37*a*pow(om0,6)-40*pow(om0,5)*or0+4656*pow(a,4)*pow(om0,5)*(-1+om0+or0)+8692*pow(a,3)*pow(om0,4)*or0*(-1+om0+or0)+4032*pow(a,2)*pow(om0,3)*pow(or0,2)*(-1+om0+or0)+7452*pow(a,7)*pow(om0,4)*pow(-1+om0+or0,2)+25728*pow(a,6)*pow(om0,3)*or0*pow(-1+om0+or0,2)+17856*pow(a,5)*pow(om0,2)*pow(or0,2)*pow(-1+om0+or0,2)-25408*pow(a,10)*pow(om0,3)*pow(-1+om0+or0,3)-22016*pow(a,9)*pow(om0,2)*or0*pow(-1+om0+or0,3)+9216*pow(a,8)*om0*pow(or0,2)*pow(-1+om0+or0,3)+22848*pow(a,13)*pow(om0,2)*pow(-1+om0+or0,4)+2048*pow(a,12)*om0*or0*pow(-1+om0+or0,4)-9216*pow(a,16)*om0*pow(-1+om0+or0,5)-3072*pow(a,15)*or0*pow(-1+om0+or0,5)-1024*pow(a,19)*pow(-1+om0+or0,6)))/pow(om0-4*pow(a,3)*(-1+om0+or0),8))/(1-om0-or0))*pow(pba->H0,2)*pba->Omega0_lambda;
-
-		/*exp((3.*HSb*om0*((64. + 21.*(-4. + om0)*om0)/pow(-4. + 3.*om0,3.) +(-64.*pow(a,6.)*pow(pba->a_today,3.)*pow(-1. + om0,2.) +44.*pow(a,3.)*pow(pba->a_today,6.)*(-1 + om0)*om0 - pow(pba->a_today,9.)*pow(om0,2.))/pow(4.*pow(a,3.)*(-1. + om0) - pow(pba->a_today,3.)*om0,3.)))/8. +(pow(pba->a_today,3.)*pow(HSb,2.)*om0*((-2621440.*pow(a,21.)*pow(-1. + om0,7.) + 4849664.*pow(a,18.)*pow(pba->a_today,3.)*pow(-1. + om0,6.)*om0 -4030464.*pow(a,15.)*pow(pba->a_today,6.)*pow(-1. + om0,5.)*pow(om0,2.) +964352.*pow(a,12.)*pow(pba->a_today,9.)*pow(-1. + om0,4.)*pow(om0,3.) +639488.*pow(a,9.)*pow(pba->a_today,12.)*pow(-1. + om0,3.)*pow(om0,4.) -9024.*pow(a,6.)*pow(pba->a_today,15.)*pow(-1.+om0,2.)*pow(om0,5.) -352.*pow(a,3.)*pow(pba->a_today,18.)*(-1. + om0)*pow(om0,6.) + 11.*pow(pba->a_today,21.)*pow(om0,7.))/pow(-4.*pow(a,3.)*(-1. + om0) + pow(pba->a_today,3.)*om0,8) +(-2621440. + om0*(13500416. + 3.*om0*(-9994240. + 3.*om0*(4243712. +9.*om0*(-377344. + 3.*om0*(61376. + om0*(-15008. + 855.*om0)))))))/(pow(pba->a_today,3.)*pow(4. - 3.*om0,8.))))/128.)*pow(pba->H0,2)*pba->Omega0_lambda; */
-
-	      /*-3*(-1 + om0)*pow(pba->H0,2) + 3*pow(a,6)*pow(HSb,2)*pow(pba->H0,2)*pow(-1 + om0,3)*(9216*om0*pow(a,15)*pow(-1 + om0,5) + 1024*pow(a,18)*pow(-1 + om0,6) - 22848*pow(a,12)*pow(-1 + om0,4)*pow(om0,2) + 25408*pow(a,9)*pow(-1 + om0,3)*pow(om0,3) - 7452*pow(a,6)*pow(-1 + om0,2)*pow(om0,4) - 4656*(-1 + om0)*pow(a,3)*pow(om0,5) + 37*pow(om0,6))*pow(om0 - 4*(-1 + om0)*pow(a,3),-8) - 18*HSb*pow(a,3)*pow(pba->H0,2)*pow(-1 + om0,2)*((-1 + om0)*om0*pow(a,3) + 4*pow(a,6)*pow(-1 + om0,2) - 2*pow(om0,2))*pow(om0 - 4*(-1 + om0)*pow(a,3),-3);*/
-	      rho_tot += pvecback[pba->index_bg_rho_lambda];
-	      p_tot +=  pvecback[pba->index_bg_w_fR]*pvecback[pba->index_bg_rho_lambda];
-	    }
-	  if (pba->b_pi != 0.)
-	    {
-	      pvecback[pba->index_bg_rho_lambda] = pba->Omega0_lambda * pow(pba->H0,2);
-	      rho_tot += pvecback[pba->index_bg_rho_lambda];
-	      p_tot -= pvecback[pba->index_bg_rho_lambda];
-	    }
-	}
-      else
-	{
-	  pvecback[pba->index_bg_rho_lambda] = pba->Omega0_lambda * pow(pba->H0,2);
-	  rho_tot += pvecback[pba->index_bg_rho_lambda];
-	  p_tot -= pvecback[pba->index_bg_rho_lambda];
-	}
-    }
-
-  if (pba->has_fld == _TRUE_) 
-    {
-      /* fluid with w=w0+wa(1-a/a0) and constant cs2 */
-      pvecback[pba->index_bg_rho_fld] = pba->Omega0_fld * pow(pba->H0,2)
-	/ pow(a_rel,3.*(1.+pba->w0_fld+pba->wa_fld))
-	* exp(3.*pba->wa_fld*(a_rel-1.));
-      rho_tot += pvecback[pba->index_bg_rho_fld];
-      p_tot += (pba->w0_fld+pba->wa_fld*(1.-a_rel)) * pvecback[pba->index_bg_rho_fld];
-    }
+  /* fluid with w=w0+wa(1-a/a0) and constant cs2 */
+  if (pba->has_fld == _TRUE_) {
+    pvecback[pba->index_bg_rho_fld] = pba->Omega0_fld * pow(pba->H0,2)
+      / pow(a_rel,3.*(1.+pba->w0_fld+pba->wa_fld))
+      * exp(3.*pba->wa_fld*(a_rel-1.));
+    rho_tot += pvecback[pba->index_bg_rho_fld];
+    p_tot += (pba->w0_fld+pba->wa_fld*(1.-a_rel)) * pvecback[pba->index_bg_rho_fld];
+  }
 
   /* relativistic neutrinos (and all relativistic relics) */
   if (pba->has_ur == _TRUE_) {
@@ -841,34 +731,6 @@ int background_functions(
 
   /** - compute derivative of H with respect to conformal time */
   pvecback[pba->index_bg_H_prime] = - (3./2.) * (rho_tot + p_tot) * a + pba->K/a;
-
-  if (pba->has_fR == _TRUE_) 
-    {
-      if (pba->b_pi != 0.)
-	{
-	  pvecback[pba->index_bg_Fprime_fR] = 0. ; 
-	    /*((pow(a,2.+3.*des_c0)*(7.+6.*des_c0)*fR0HS*pow(pow(a,3.)*(1.-om0)+om0,-1.-des_c0)*gsl_sf_hyperg_2F1(des_c0,1.5+des_c0,13./6.+2.*des_c0,(pow(a,3.)*(1.-om0))/(pow(a,3.)*(1.-om0)+om0)))/(2.*gsl_sf_hyperg_2F1(1.+des_c0,1.5+des_c0,13./6.+2.*des_c0,1.-om0))+(pow(a,2.+3.*des_c0)*fR0HS*(2.*pow(a,3.)*(1.-om0)-om0)*pow(pow(a,3.)*(1.-om0)+om0,-2.-des_c0)*gsl_sf_hyperg_2F1(1.+des_c0,1.5+des_c0,13./6.+2.*des_c0,(pow(a,3.)*(1.-om0))/(pow(a,3.)*(1.-om0)+om0)))/(2.*gsl_sf_hyperg_2F1(1.+des_c0,1.5+des_c0,13./6+2.*des_c0,1.-om0)));*/
-	  pvecback[pba->index_bg_F_fR] = 0. ; /*1 + (pow(a,3.)*fR0HS*pow((pow(a,3.)*(-1 + om0))/(pow(a,3.)*(-1. + om0) - om0),des_c0)*gsl_sf_hyperg_2F1(1. + des_c0,1.5 + des_c0,13./6. +2.*des_c0,(pow(a,3.)*(-1. + om0))/(pow(a,3.)*(-1. + om0) - om0)))/(pow(1. - om0,des_c0)*(-(pow(a,3.)*(-1. + om0)) + om0)*gsl_sf_hyperg_2F1(1. + des_c0,1.5 + des_c0,13./6. + 2.*des_c0,1. - om0)); */
-	  pvecback[pba->index_bg_FR_fR] = 0. ;/*(pow(3.,2. + des_c0)*fR0HS*pow((pow(a,3.)*(-1. + om0))/(3.*pow(a,3.)*(-1. + om0) - 3.*om0),des_c0)*pow(-(pow(a,3.)*(-1. + om0)) + om0,2.)*((7. + 6.*des_c0)*(pow(a,3.)*(-1. + om0) - om0)*gsl_sf_hyperg_2F1(des_c0,1.5 + des_c0,13./6. + 2.*des_c0,(pow(a,3.)*(-1. + om0))/(pow(a,3.)*(-1. + om0) - om0)) +(2.*pow(a,3.)*(-1. + om0) + om0)*gsl_sf_hyperg_2F1(1. + des_c0,1.5 + des_c0,13./6. + 2.*des_c0, (pow(a,3.)*(-1. + om0))/(pow(a,3.)*(-1. + om0) - om0))))/(2.*pow(a,6.)*pow(1. - om0,des_c0)*om0*pow(3. + 3.*(-1. + pow(a,-3.))*om0,4.)*gsl_sf_hyperg_2F1(1. + des_c0,1.5 + des_c0,13./6. + 2.*des_c0,1. - om0)); */
-	}
-      else
-	{
-	  pvecback[pba->index_bg_FR_fR] = (-4*pow(a,9)*HSb*pow(-1+om0+or0,2))/(3.*pow(-om0+4*pow(a,3)*(-1+om0+or0),3))-(4*pow(a,12)*pow(HSb,2)*pow(-1+om0+or0,3)*(-pow(om0,4)+100*pow(a,3)*pow(om0,3)*(-1+om0+or0)+84*pow(a,2)*pow(om0,2)*or0*(-1+om0+or0)-60*pow(a,6)*pow(om0,2)*pow(-1+om0+or0,2)+96*pow(a,5)*om0*or0*pow(-1+om0+or0,2)-32*pow(a,9)*om0*pow(-1+om0+or0,3)+128*pow(a,12)*pow(-1+om0+or0,4)))/pow(om0-4*pow(a,3)*(-1+om0+or0),8);
-
-	    /*(4.*pow(a,9.)*HSb*pow(-1. + om0,2.))/(3.*pow(-4.*pow(a,3.)*(-1. + om0) + om0,3.)) -(4.*pow(a,12.)*pow(HSb,2.)*pow(-1. + om0,3.)*(128.*pow(a,12.)*pow(-1. + om0,4.) -32.*pow(a,9.)*pow(-1. + om0,3.)*om0 -60.*pow(a,6.)*pow(-1. + om0,2.)*pow(om0,2.) +100.*pow(a,3.)*(-1. + om0)*pow(om0,3.) -pow(om0,4.)))/pow(-4.*pow(a,3.)*(-1. + om0) + om0,8.); */
-
-	  pvecback[pba->index_bg_F_fR] = 1-(2*pow(a,6)*HSb*pow(-1+om0+or0,2))/pow(om0-4*pow(a,3)*(-1+om0+or0),2)-(4*pow(a,9)*pow(HSb,2)*pow(-1+om0+or0,3)*(-pow(om0,4)+100*pow(a,3)*pow(om0,3)*(-1+om0+or0)+84*pow(a,2)*pow(om0,2)*or0*(-1+om0+or0)-60*pow(a,6)*pow(om0,2)*pow(-1+om0+or0,2)+96*pow(a,5)*om0*or0*pow(-1+om0+or0,2)-32*pow(a,9)*om0*pow(-1+om0+or0,3)+128*pow(a,12)*pow(-1+om0+or0,4)))/pow(-om0+4*pow(a,3)*(-1+om0+or0),7);
-
-	    /*1.-(2.*pow(a,6.)*HSb*pow(-1.+om0,2.))/pow(-4.*pow(a,3.)*(-1.+om0)+om0,2.) -(4.*pow(a,9.)*pow(HSb,2.)*pow(-1.+om0,3.)*(128.*pow(a,12.)*pow(-1.+om0,4.)-32.*pow(a,9.)*pow(-1. +om0,3.)*om0-60.*pow(a,6.)*pow(-1.+om0,2.)*pow(om0,2.)+100.*pow(a,3.)*(-1.+om0)*pow(om0,3.) -pow(om0,4.)))/pow(4.*pow(a,3.)*(-1.+om0)-om0,7.); */
-
-	  pvecback[pba->index_bg_Fprime_fR] = (12*pow(a,5)*HSb*om0*pow(-1+om0+or0,2))/pow(-om0+4*pow(a,3)*(-1+om0+or0),3)+(12*pow(a,8)*pow(HSb,2)*om0*pow(-1+om0+or0,3)*(-3*pow(om0,4)+384*pow(a,3)*pow(om0,3)*(-1+om0+or0)+308*pow(a,2)*pow(om0,2)*or0*(-1+om0+or0)+900*pow(a,6)*pow(om0,2)*pow(-1+om0+or0,2)+1568*pow(a,5)*om0*or0*pow(-1+om0+or0,2)-672*pow(a,9)*om0*pow(-1+om0+or0,3)+896*pow(a,8)*or0*pow(-1+om0+or0,3)+768*pow(a,12)*pow(-1+om0+or0,4)))/pow(om0-4*pow(a,3)*(-1+om0+or0),8);
-
-	    /*((12.*pow(a,5.)*HSb*pow(-1. + om0,2.)*om0)/pow(4.*pow(a,3.)*(-1. + om0) - om0,3.) +(36.*pow(a,8.)*pow(HSb,2.)*pow(-1. + om0,3.)*om0*(256.*pow(a,12.)*pow(-1. + om0,4.)- 24.*pow(a,9.)*pow(-1. + om0,3.)*om0 +300.*pow(a,6.)*pow(-1. + om0,2.)*pow(om0,2.) +128.*pow(a,3.)*(-1. + om0)*pow(om0,3.) -pow(om0,4.)))/pow(-4.*pow(a,3.)*(-1. + om0) + om0,8.));*/
-
-	  //printf("FR = %.5e F = %.5e Fprime = %.5e HSb = %.5e bhs = %.5e\n",pvecback[pba->index_bg_FR_fR],pvecback[pba->index_bg_F_fR],pvecback[pba->index_bg_Fprime_fR],HSb,pba->bhs);
-	  //exit(1);
-	}
-    }
 
   /** - compute relativistic density to total density ratio */
   pvecback[pba->index_bg_Omega_r] = rho_r / rho_tot;
@@ -1284,9 +1146,6 @@ int background_ncdm_momenta(
   double epsilon;
   double q2;
   double factor2;
-  double density_neutrino_at_a() ;
-  double pressure_neutrino_at_a();
-  double x,y;
 
   /** - rescale normalization at given redshift */
   factor2 = factor*pow(1+z,4);
@@ -1322,90 +1181,8 @@ int background_ncdm_momenta(
   if (drho_dM!=NULL) *drho_dM *= factor2;
   if (pseudo_p!=NULL) *pseudo_p *=factor2;
 
-  x = density_neutrino_at_a(1./(1.+z),M);
-  y = pressure_neutrino_at_a(1./(1.+z),M);
-  printf("rho_nu = %1.12e p_nu = %1.12e at a = %1.12e \n",x,y,1./(1.+z));
-  //printf("p_nu = %e at a = %e \n",y,1./(1.+z));
-  exit(1);
   return _SUCCESS_;
 }
-
-/* MODIFICATIONS INTRODUCED TO AVOID NUMERICAL INTEGRATION WITH WEIGHTS */
-
-double density_neutrino_at_a(double a,double m)
-{
-  double result;
-  //double z_nu;
-  int index_sum;
-  int index_sum_max = 5;
-  double Tnu_0;
-  double Bessel0,Bessel1;
-  double Struve1, Struve0;
-  double struve();
-  double param0,param1;
-  double g,x,y ; 
-
-  Tnu_0 = 2.726*pow(4./11.,1./3.)*_k_B_/1.6e-19; // T_ncdm in eV
-  y = 1./Tnu_0;
-  result = 0.;
-  param0 = 0.;
-  param1 = 1.;
-  g = 2.;
-
-  for (index_sum=1;index_sum<index_sum_max;index_sum++)
-    {
-      //z_nu = pow(index_sum*a*m/2./Tnu_0,2);
-      x = 1./Tnu_0; //2.131330993153e6 ;//index_sum*a*m/Tnu_0;
-      Bessel0 = gsl_sf_bessel_Y0(1./Tnu_0);
-      Bessel1 = gsl_sf_bessel_Y1(x);
-      Struve0 = struve(param0,x);
-      Struve1 = struve(param1,x);
-      printf("Y0 = %1.12e  Y1 = %1.12e H0 = %1.12e  H1 = %1.12e at x = %1.12e \n",Bessel0,Bessel1,Struve0,Struve1,y);
-      result += pow(-1.,index_sum)/pow(x,3)*( -pow(x,2) + 3.*_PI_*x*( Struve0 - Bessel0 )/2. + _PI_*(3. - pow(x,2)/2.)*(Bessel1 - Struve1) );
-    }
-  result = 8*_PI_*_G_/3.*g*pow(m,4)*result/2./pow(_PI_,2);
-  
-  return result;
-}
-
-double pressure_neutrino_at_a(double a,double m)
-{
-  double result;
-  //double z_nu;
-  int index_sum;
-  int index_sum_max = 10000;
-  double Tnu_0;
-  double Bessel2;
-  double Struve1, Struve0;
-  double struve();
-  //double yn();
-  double param0,param1;
-  double g,x; 
-  int n = 2;
-
-  Tnu_0 = 2.726*pow(4./11.,1./3.)*_k_B_/1.6e-19; // T_ncdm in eV
-  result = 0.;
-  param0 = 0.;
-  param1 = 1.;
-  g = 2.;
-
-  for (index_sum=1;index_sum<index_sum_max;index_sum++)
-    {
-      //z_nu = pow(index_sum*a*m/2./Tnu_0,2);
-      x = index_sum*a*m/Tnu_0 ; 
-      //  y = yn(n,x);
-      Bessel2 = gsl_sf_bessel_Yn(n,x);
-      Struve0 = struve(param0,x);
-      Struve1 = struve(param1,x);
-      //printf("Y2 = %1.12e  H0 = %e H1 = %e at x = %1.12e \n",Bessel2,Struve0,Struve1,x);
-      result += pow(-1.,index_sum+1)/pow(x,3)*( pow(x,2) + _PI_*( pow(x,2) - 3.)*( x*(Bessel2 + Struve0)/2. - Struve1 ));
-    }
-  result = 8*_PI_*_G_/3.*g*pow(m,4)*8.*result/48./pow(_PI_,2);
-  
-  return result;
-}
-
-/* MODIFICATIONS END */
 
 /**
  * When the user passed in input the density fraction Omeha_ncdm or
