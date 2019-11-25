@@ -1063,16 +1063,16 @@ int input_read_parameters(
       class_read_double("w0_fld",pba->w0_fld);
       class_read_double("wa_fld",pba->wa_fld);
       //class_read_double("cs2_fld",pba->cs2_fld);
-      class_read_double("log10ceff2",ppt->log10ceff2);
-      ppt->ceff2 = pow(10.,ppt->log10ceff2);
+      class_read_double("log10cs2_fld",ppt->log10cs2_fld);
+      pba->cs2_fld = pow(10.,ppt->log10cs2_fld);
       //ppt->ceff2 = pba->cs2_fld - 2.*ppt->f_pi/3.;
       class_read_double("e_pi",ppt->e_pi);
-      class_read_double("f_pi",ppt->f_pi);
-      class_read_double("log10g_pi",ppt->log10g_pi);
-      ppt->g_pi = pow(10.,ppt->log10g_pi);
-      class_read_double("Anad",ppt->Anad);
-      class_read_double("Nnad",ppt->Nnad);
-      pba->cs2_fld = ppt->ceff2 + 2.*ppt->f_pi/3.;
+      //class_read_double("f_pi",ppt->f_pi);
+      //class_read_double("log10g_pi",ppt->log10g_pi);
+      //ppt->g_pi = pow(10.,ppt->log10g_pi);
+      //class_read_double("Anad",ppt->Anad);
+      //class_read_double("Nnad",ppt->Nnad);
+      //pba->cs2_fld = ppt->ceff2 + 2.*ppt->f_pi/3.;
       
       if (ppt->Anad != 0.)
 	{
@@ -3104,7 +3104,8 @@ int input_default_params(
   ppt->Anad=0.;
   ppt->Nnad=0.; 
   //ppt->g_pi=0.; 
-
+  ppt->log10cs2_fld = 0.;
+  
   ppt->store_perturbations = _FALSE_;
   ppt->number_of_scalar_titles=0;
   ppt->number_of_vector_titles=0;

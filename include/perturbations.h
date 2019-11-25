@@ -381,7 +381,8 @@ struct perturbs
   double log10ceff2; /* LOG10 DARK ENERGY EFFECTIVE SOUND SPEED */
   double Anad; /* AMPLITUDE NON-ADIABATIC DE SOUND SPEED */
   double Nnad; /* POWER NON-ADIABATIC DE SOUND SPEED */
-
+  double log10cs2_fld; /* LOG10 DARK ENERGY SOUND SPEED */
+  
   //@}
 
   /** @name - technical parameters */
