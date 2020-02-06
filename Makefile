@@ -64,8 +64,8 @@ INCLUDES = -I../include
 #INCLUDES += -I/opt/ohpc/pub/libs/gnu/gsl/1.16/include ##WC
 #LDFLAG += -L/opt/ohpc/pub/libs/gnu/gsl/1.16/lib -lgsl -lgslcblas
 # PATHS IN MY LOCAL MACHINE
-#INCLUDES += -I/usr/local/include/gsl ##WC
-#LDFLAG += -L/usr/local/lib -lgsl -lgslcblas 
+INCLUDES += -I/usr/local/include/gsl ##WC
+LDFLAG += -L/usr/local/lib -lgsl -lgslcblas 
 # automatically add external programs if needed. First, initialize to blank.
 EXTERNAL =
 
@@ -148,7 +148,7 @@ libclass.a: $(TOOLS) $(SOURCE) $(EXTERNAL)
 	$(AR)  $@ $(addprefix build/, $(TOOLS) $(SOURCE) $(EXTERNAL))
 
 class: $(TOOLS) $(SOURCE) $(EXTERNAL) $(OUTPUT) $(CLASS)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o class $(addprefix build/,$(notdir $^)) -lm #-lgsl -lgslcblas
+	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o class $(addprefix build/,$(notdir $^)) -lm -lgsl -lgslcblas
 
 test_sigma: $(TOOLS) $(SOURCE) $(EXTERNAL) $(OUTPUT) $(TEST_SIGMA)
 	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o test_sigma $(addprefix build/,$(notdir $^)) -lm

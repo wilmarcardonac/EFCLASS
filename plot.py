@@ -9,8 +9,8 @@ import matplotlib.pyplot as py
 
 # DES
 
-#Cl1 = np.loadtxt('./output/Cl_designer_lcdm_cl_hyp.dat',unpack=True)
-Cl1a = np.loadtxt('./output/Cl_designer_lcdm_cl.dat',unpack=True)
+Cl1 = np.loadtxt('./output/Cl_designer_lcdm_cl.dat',unpack=True)
+#Cl1a = np.loadtxt('./output/Cl_designer_lcdm_cl.dat',unpack=True)
 # Hu-Sawicky
 
 #Cl2 = np.loadtxt('./output/Cl_husawicki_cl.dat',unpack=True)
@@ -19,8 +19,8 @@ Cl1a = np.loadtxt('./output/Cl_designer_lcdm_cl.dat',unpack=True)
 
 Tfactor = (2.726e6)**2
 
-#py.loglog(Cl1[0],Cl1[1]*Tfactor,label=r'$w=-1$ DES')
-py.loglog(Cl1a[0],Cl1a[1]*Tfactor,label=r'$w=-1$ DES Approx')
+py.loglog(Cl1[0],Cl1[1]*Tfactor,label=r'$w=-1$ DES')
+#py.loglog(Cl1a[0],Cl1a[1]*Tfactor,label=r'$w=-1$ DES Approx')
 #py.loglog(abs(Cl1a[0]-Cl1[0])/Cl1[0],Cl1[1]*Tfactor,label=r'$w=-1$ DES')
 #py.loglog(Cl2[0],Cl2[1]*Tfactor,label=r'HS')
 py.xlabel(r'$\ell$')
