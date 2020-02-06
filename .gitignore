@@ -2,4 +2,5 @@ build/
 class
 *~
 libclass.a
-output/*
+output/*.pdf
+plot.py
