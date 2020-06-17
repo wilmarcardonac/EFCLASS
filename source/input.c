@@ -980,40 +980,42 @@ int input_read_parameters(
     pba->Omega0_lambda = param1;
     class_read_double("log10b_pi",pba->log10b_pi);
     class_read_double("bhs",pba->bhs);
+    class_read_double("log10alpha_fR",pba->log10alpha_fR);
+    class_read_double("log10mu2_fR",pba->log10mu2_fR);
     Omega_tot += pba->Omega0_lambda;
   }
   if (flag2 == _TRUE_){
     pba->Omega0_fld = param2;
     class_read_double("log10b_pi",pba->log10b_pi);
     class_read_double("bhs",pba->bhs);
+    class_read_double("log10alpha_fR",pba->log10alpha_fR);
+    class_read_double("log10mu2_fR",pba->log10mu2_fR);
+    if (pba->log10alpha_fR != 0) flag1 = _FALSE_; 
     Omega_tot += pba->Omega0_fld;
   }
   if ((flag3 == _TRUE_) && (param3 >= 0.)){
     pba->Omega0_scf = param3;
     class_read_double("log10b_pi",pba->log10b_pi);
     class_read_double("bhs",pba->bhs);
+    class_read_double("log10alpha_fR",pba->log10alpha_fR);
+    class_read_double("log10mu2_fR",pba->log10mu2_fR);
     Omega_tot += pba->Omega0_scf;
   }
+
   /* Step 2 */
   if (flag1 == _FALSE_) {
     //Fill with Lambda
     pba->Omega0_lambda= 1. - pba->Omega0_k - Omega_tot;
-    class_read_double("log10b_pi",pba->log10b_pi);
-    class_read_double("bhs",pba->bhs);
     if (input_verbose > 0) printf(" -> matched budget equations by adjusting Omega_Lambda = %e\n",pba->Omega0_lambda);
   }
   else if (flag2 == _FALSE_) {
     // Fill up with fluid
     pba->Omega0_fld = 1. - pba->Omega0_k - Omega_tot;
-    class_read_double("log10b_pi",pba->log10b_pi);
-    class_read_double("bhs",pba->bhs);
     if (input_verbose > 0) printf(" -> matched budget equations by adjusting Omega_fld = %e\n",pba->Omega0_fld);
   }
   else if ((flag3 == _TRUE_) && (param3 < 0.)){
     // Fill up with scalar field
     pba->Omega0_scf = 1. - pba->Omega0_k - Omega_tot;
-    class_read_double("log10b_pi",pba->log10b_pi);
-    class_read_double("bhs",pba->bhs);
     if (input_verbose > 0) printf(" -> matched budget equations by adjusting Omega_scf = %e\n",pba->Omega0_scf);
   }
 
@@ -3002,6 +3004,10 @@ int input_default_params(
   pba->b_pi=0.;
   pba->log10b_pi=-1e2;
   pba->bhs=0.;
+  pba->alpha_fR=0.;
+  pba->log10alpha_fR=-1e2;
+  pba->mu2_fR=0.;
+  pba->log10mu2_fR-1e2;
 
   pba->shooting_failed = _FALSE_;
 

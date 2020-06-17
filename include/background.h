@@ -70,6 +70,10 @@ struct background
   double b_pi; /* fR0HS PARAMETER FOR DESIGNER MODEL w = -1 */
   double log10b_pi; /* LOG10 ABSOLUTE VALUE OF fR0HS. PARAMETER FOR DESIGNER MODEL w = -1 */
   double bhs; /* PARAMETER IN THE HU-SAWICKY MODEL WITH SAVVAS' PARAMETRISATION */
+  double mu2_fR; /* PARAMETER FOR GRANDA'S MODEL*/
+  double log10mu2_fR; /* log10 PARAMETER FOR GRANDA'S MODEL*/
+  double alpha_fR; /* PARAMETER IN GRANDA'A MODEL*/
+  double log10alpha_fR; /* log10 PARAMETER FOR GRANDA'S MODEL*/
   
   short use_ppf; /**< flag switching on PPF perturbation equations
                     instead of true fluid equations for

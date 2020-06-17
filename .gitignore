@@ -3,4 +3,4 @@ class
 *~
 libclass.a
 output/*.pdf
-plot.py
+output/*.dat
