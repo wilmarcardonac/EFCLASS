@@ -1,0 +1,6 @@
+build/
+class
+*~
+libclass.a
+output/*.pdf
+output/*.dat
