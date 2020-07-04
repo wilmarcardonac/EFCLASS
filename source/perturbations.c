@@ -5167,7 +5167,7 @@ int perturb_einstein(
 	  //pi_fR = k2*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR]/(1. + 3.*k2*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR]    )/ppw->pvecback[pba->index_bg_F_fR]*ppw->pvecback[pba->index_bg_Omega_m]/pba->Omega0_lambda*ppw->delta_m;
 
 	  pi_fR = k2*pow(2997.92458/pba->h,2.)*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR]/(1. + 3.*k2*pow(2997.92458/pba->h,2)*ppw->pvecback[pba->index_bg_FR_fR]/a2/ppw->pvecback[pba->index_bg_F_fR])/ppw->pvecback[pba->index_bg_F_fR]*(pba->Omega0_b*y[ppw->pv->index_pt_delta_b] + pba->Omega0_cdm*y[ppw->pv->index_pt_delta_cdm]  )   ;
-	  
+
 	  //ppw->pvecmetric[ppw->index_mt_psi] = y[ppw->pv->index_pt_phi] - 4.5 * (a2/k2) * (ppw->rho_plus_p_shear + 2./3.*ppw->pvecback[pba->index_bg_rho_lambda]*pi_fR )  ;
 	  ppw->pvecmetric[ppw->index_mt_psi] = y[ppw->pv->index_pt_phi] - 4.5 * (a2/k2) * ppw->rho_plus_p_shear - 3.*(a2/k2/pow(2997.92458/pba->h,2.))*pi_fR   ;
 	  

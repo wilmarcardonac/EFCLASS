@@ -14,18 +14,33 @@ import matplotlib.pyplot as py
 
 # Hu-Sawicky
 
-#Cl2 = np.loadtxt('./output/Cl_husawicki_cl.dat',unpack=True)
-#Cl2p = np.loadtxt('./output/Cl_husawicki_pk.dat',unpack=True)
+Cl2 = np.loadtxt('./output/Cl_husawicki_cl.dat',unpack=True)
+Cl2p = np.loadtxt('./output/Cl_husawicki_pk.dat',unpack=True)
+back2 = np.loadtxt('./output/Cl_husawicki_background.dat',unpack=True)
 
 # Granda
 
 Cl3 = np.loadtxt('./output/Cl_granda_cl.dat',unpack=True)
 Cl3p = np.loadtxt('./output/Cl_granda_pk.dat',unpack=True)
+back3 = np.loadtxt('./output/Cl_granda_background.dat',unpack=True)
 
 Cl = np.loadtxt('./output/Cl_lcdm_cl.dat',unpack=True)
 Clp = np.loadtxt('./output/Cl_lcdm_pk.dat',unpack=True)
+back = np.loadtxt('./output/Cl_lcdm_background.dat',unpack=True)
 
-# FIGURE 
+# FIGURES
+
+#py.plot(-np.log(1.+back2[0]),back2[3],label=r'HS')
+#py.plot(-np.log(1.+back[0]),back[3],label=r'$\Lambda CDM$')
+#py.plot(-np.log(1.+back[0]),abs(1.-back2[3]/back[3])*1.e2,label=r'$\% diff.$')
+py.plot(-np.log(1.+back[0]),abs(1.-back3[3]/back[3])*1.e2,label=r'$\% diff.$')
+py.xlabel(r'$x$')
+py.ylabel(r'$H(x)$')
+#py.xscale('linear')
+py.legend(loc=0)
+#py.savefig('./output/Cl_husawicki_background.pdf')
+py.savefig('./output/Cl_granda_background.pdf')
+py.close()
 
 Tfactor = (2.726e6)**2
 
@@ -52,6 +67,7 @@ py.close()
 # EE
 
 py.loglog(Cl3[0],Cl3[2],label=r'Granda')
+#py.loglog(Cl2[0],Cl2[2],label=r'HS')
 py.loglog(Cl[0],Cl[2],label=r'$\Lambda CDM$')
 py.xlabel(r'$\ell$')
 #py.ylabel(r'$\ell(\ell+1)C_\ell/2\pi$')
@@ -61,13 +77,14 @@ py.xlabel(r'$\ell$')
 #py.yscale('linear')
 py.legend(loc=0)
 #py.savefig('./output/Cl_designer_lcdm_cl.pdf')
-#py.savefig('./output/Cl_husawicki_cl.pdf')
+#py.savefig('./output/Cl_husawicki_EE.pdf')
 py.savefig('./output/Cl_granda_cl_EE.pdf')
 py.close()
 
 # TE
 
 py.loglog(Cl3[0],abs(Cl3[3]),label=r'Granda')
+#py.loglog(Cl2[0],abs(Cl2[3]),label=r'HS')
 py.loglog(Cl[0],abs(Cl[3]),label=r'$\Lambda CDM$')
 py.xlabel(r'$\ell$')
 #py.ylabel(r'$\ell(\ell+1)C_\ell/2\pi$')
@@ -77,7 +94,7 @@ py.xlabel(r'$\ell$')
 #py.yscale('linear')
 py.legend(loc=0)
 #py.savefig('./output/Cl_designer_lcdm_cl.pdf')
-#py.savefig('./output/Cl_husawicki_cl.pdf')
+#py.savefig('./output/Cl_husawicki_cl_TE.pdf')
 py.savefig('./output/Cl_granda_cl_TE.pdf')
 py.close()
 
