@@ -979,7 +979,7 @@ int input_read_parameters(
   if (flag1 == _TRUE_){
     pba->Omega0_lambda = param1;
     class_read_double("log10b_pi",pba->log10b_pi);
-    class_read_double("bhs",pba->bhs);
+    class_read_double("log10bhs",pba->log10bhs);
     class_read_double("log10alpha_fR",pba->log10alpha_fR);
     class_read_double("log10mu2_fR",pba->log10mu2_fR);
     Omega_tot += pba->Omega0_lambda;
@@ -987,7 +987,7 @@ int input_read_parameters(
   if (flag2 == _TRUE_){
     pba->Omega0_fld = param2;
     class_read_double("log10b_pi",pba->log10b_pi);
-    class_read_double("bhs",pba->bhs);
+    class_read_double("log10bhs",pba->log10bhs);
     class_read_double("log10alpha_fR",pba->log10alpha_fR);
     class_read_double("log10mu2_fR",pba->log10mu2_fR);
     if (pba->log10alpha_fR != 0) flag1 = _FALSE_; 
@@ -996,7 +996,7 @@ int input_read_parameters(
   if ((flag3 == _TRUE_) && (param3 >= 0.)){
     pba->Omega0_scf = param3;
     class_read_double("log10b_pi",pba->log10b_pi);
-    class_read_double("bhs",pba->bhs);
+    class_read_double("log10bhs",pba->log10bhs);
     class_read_double("log10alpha_fR",pba->log10alpha_fR);
     class_read_double("log10mu2_fR",pba->log10mu2_fR);
     Omega_tot += pba->Omega0_scf;
@@ -3004,6 +3004,7 @@ int input_default_params(
   pba->b_pi=0.;
   pba->log10b_pi=-1e2;
   pba->bhs=0.;
+  pba->log10bhs = -1e2;
   pba->alpha_fR=0.;
   pba->log10alpha_fR=-1e2;
   pba->mu2_fR=0.;

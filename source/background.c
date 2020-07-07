@@ -984,9 +984,9 @@ int background_indices(
     {
       pba->has_lambda = _TRUE_;
       printf("Omega0_lambda IS = %.5e\n",pba->Omega0_lambda);
-      if ( ( (pba->log10b_pi != -1e2) && (pba->bhs != 0.) ) && (pba->log10alpha_fR != -1e2))
+      if ( ( (pba->log10b_pi != -1e2) && (pba->log10bhs != -1e2) ) && (pba->log10alpha_fR != -1e2))
 	{
-	  printf("ONE CAN ONLY GIVE log10b_pi, log10alpha_fR OR bhs \n");
+	  printf("ONE CAN ONLY GIVE log10b_pi, log10alpha_fR OR log10bhs \n");
 	  exit(1);
 	}
       else
@@ -999,8 +999,9 @@ int background_indices(
 	      /*printf("DESIGNER MODEL COMMENTED OUT TEMPORALY \n");
 		exit(1);*/
 	    }
-	  if (pba->bhs != 0.)
+	  if (pba->log10bhs != -1e2)
 	    {
+	      pba->bhs = pow(10.,pba->log10bhs);
 	      pba->has_fR = _TRUE_;
 	      printf("RUNNING HU-SAWICKI MODEL WITH SAVVAS PARAMETRISATION \n");
 	    }
