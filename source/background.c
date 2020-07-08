@@ -455,6 +455,12 @@ int background_functions(
 	      rho_tot += pvecback[pba->index_bg_rho_lambda];
 	      p_tot -= pvecback[pba->index_bg_rho_lambda];
 	    }
+	  if ( (pba->c0_des != 0.) || (pba->j0_des != 0.) )
+	    {
+	      pvecback[pba->index_bg_rho_lambda] = pba->Omega0_lambda * pow(pba->H0,2);
+	      rho_tot += pvecback[pba->index_bg_rho_lambda];
+	      p_tot -= pvecback[pba->index_bg_rho_lambda];
+	    }
 	}
       else
 	{
@@ -524,7 +530,7 @@ int background_functions(
 	  pvecback[pba->index_bg_Fprime_fR] = 6*pba->alpha_fR*om0*(-1 + om0 + or0)*pow(a,4)*pow(1 + or0*(-1 + pow(a,-4)) + om0*(-1 + pow(a,-3)),0.5)*pow(om0 - 4*(-1 + om0 + or0)*pow(a,3),-2) - 3*om0*pow(a,2)*pow(pba->alpha_fR,2)*pow(-1 + om0 + or0,2)*pow(1 + or0*(-1 + pow(a,-4)) + om0*(-1 + pow(a,-3)),-0.5)*pow(om0 - 4*(-1 + om0 + or0)*pow(a,3),-6)*(-1728*or0*(-1 + om0 + or0)*pow(a,4)*pow(om0,2) - 164*a*or0*pow(om0,3) - 812*(-1 + om0 + or0)*pow(a,5)*pow(om0,3) - 85*pow(a,2)*pow(om0,4) - 896*om0*(-1 + om0 + or0)*pow(a,3)*pow(or0,2) - 80*pow(om0,2)*pow(or0,2) + 960*om0*or0*pow(a,7)*pow(-1 + om0 + or0,2) + 1776*pow(a,8)*pow(om0,2)*pow(-1 + om0 + or0,2) - 896*pow(a,6)*pow(or0,2)*pow(-1 + om0 + or0,2) - 256*or0*pow(a,10)*pow(-1 + om0 + or0,3) - 1856*om0*pow(a,11)*pow(-1 + om0 + or0,3) + 896*pow(a,14)*pow(-1 + om0 + or0,4) + a*log(-(pba->mu2_fR*pow(a,3)*pow(pba->H0,-2)*pow(-om0 + 4*(-1 + om0 + or0)*pow(a,3),-1))/3.)*(-15*a*om0 - 16*or0 + 12*(-1 + om0 + or0)*pow(a,4))*pow(-om0 + 4*(-1 + om0 + or0)*pow(a,3),3));
 
 	}
-      else
+      if (pba->bhs != 0.)
 	{
 	  /* FR */
 	  /* 2nd order in terms of b*/
@@ -984,13 +990,18 @@ int background_indices(
     {
       pba->has_lambda = _TRUE_;
       printf("Omega0_lambda IS = %.5e\n",pba->Omega0_lambda);
-      if ( ( (pba->log10b_pi != -1e2) && (pba->log10bhs != -1e2) ) && (pba->log10alpha_fR != -1e2))
+      if ( ( (pba->log10b_pi != -1e2) && (pba->log10bhs != -1e2) ) && ( (pba->log10alpha_fR != -1e2) && ( (pba->c0_des != 0.) || (pba->j0_des != 0.) ) ) )
 	{
-	  printf("ONE CAN ONLY GIVE log10b_pi, log10alpha_fR OR log10bhs \n");
+	  printf("ONE CAN ONLY GIVE log10b_pi, log10alpha_fR OR log10bhs OR c0_des,j0_des \n");
 	  exit(1);
 	}
       else
 	{
+	  if ( (pba->c0_des != 0.) || (pba->j0_des != 0.) )
+		{
+		  pba->has_fR = _TRUE_;
+		  printf("RUNNING HORNDESKI DESIGNER MODEL WITH w=-1 \n");
+		}
 	  if (pba->log10b_pi != -1e2)
 	    {
 	      pba->b_pi = -pow(10.,pba->log10b_pi);

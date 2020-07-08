@@ -75,6 +75,9 @@ struct background
   double log10mu2_fR; /* log10 PARAMETER FOR GRANDA'S MODEL*/
   double alpha_fR; /* PARAMETER IN GRANDA'A MODEL*/
   double log10alpha_fR; /* log10 PARAMETER FOR GRANDA'S MODEL*/
+  double c0_des; /* Dark Energy Anisotropic stress parameter for HORNDESKI designer model w = -1 */
+  double j0_des; /* Dark Energy Anisotropic stress parameter for HORNDESKI designer model w = -1 */
+  double n_des; /* PARAMETER IN HORNDESKI DESIGNER MODEL W = -1 */
   
   short use_ppf; /**< flag switching on PPF perturbation equations
                     instead of true fluid equations for
