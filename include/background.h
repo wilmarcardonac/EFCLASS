@@ -78,6 +78,7 @@ struct background
   double c0_des; /* Dark Energy Anisotropic stress parameter for HORNDESKI designer model w = -1 */
   double j0_des; /* Dark Energy Anisotropic stress parameter for HORNDESKI designer model w = -1 */
   double n_des; /* PARAMETER IN HORNDESKI DESIGNER MODEL W = -1 */
+  double log10j0_des; /* log10 PARAMETER FOR HORNDESKI DESIGNER MODEL w = -1*/
   
   short use_ppf; /**< flag switching on PPF perturbation equations
                     instead of true fluid equations for

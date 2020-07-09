@@ -983,7 +983,7 @@ int input_read_parameters(
     class_read_double("log10alpha_fR",pba->log10alpha_fR);
     class_read_double("log10mu2_fR",pba->log10mu2_fR);
     class_read_double("c0_des",pba->c0_des);
-    class_read_double("j0_des",pba->j0_des);
+    class_read_double("log10j0_des",pba->log10j0_des);
     class_read_double("n_des",pba->n_des);
     Omega_tot += pba->Omega0_lambda;
   }
@@ -994,7 +994,7 @@ int input_read_parameters(
     class_read_double("log10alpha_fR",pba->log10alpha_fR);
     class_read_double("log10mu2_fR",pba->log10mu2_fR);
     class_read_double("c0_des",pba->c0_des);
-    class_read_double("j0_des",pba->j0_des);
+    class_read_double("log10j0_des",pba->log10j0_des);
     class_read_double("n_des",pba->n_des);
     if (pba->log10alpha_fR != 0) flag1 = _FALSE_; 
     Omega_tot += pba->Omega0_fld;
@@ -1006,7 +1006,7 @@ int input_read_parameters(
     class_read_double("log10alpha_fR",pba->log10alpha_fR);
     class_read_double("log10mu2_fR",pba->log10mu2_fR);
     class_read_double("c0_des",pba->c0_des);
-    class_read_double("j0_des",pba->j0_des);
+    class_read_double("log10j0_des",pba->log10j0_des);
     class_read_double("n_des",pba->n_des);
     Omega_tot += pba->Omega0_scf;
   }
@@ -3021,6 +3021,7 @@ int input_default_params(
   pba->c0_des = 0.;
   pba->j0_des = 0.;
   pba->n_des = 0.;
+  pba->log10j0_des = -1e2;
   
   pba->shooting_failed = _FALSE_;
 

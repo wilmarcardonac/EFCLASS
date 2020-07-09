@@ -990,15 +990,16 @@ int background_indices(
     {
       pba->has_lambda = _TRUE_;
       printf("Omega0_lambda IS = %.5e\n",pba->Omega0_lambda);
-      if ( ( (pba->log10b_pi != -1e2) && (pba->log10bhs != -1e2) ) && ( (pba->log10alpha_fR != -1e2) && ( (pba->c0_des != 0.) || (pba->j0_des != 0.) ) ) )
+      if ( ( (pba->log10b_pi != -1e2) && (pba->log10bhs != -1e2) ) && ( (pba->log10alpha_fR != -1e2) && ( (pba->c0_des != 0.) || (pba->log10j0_des != -1e2) ) ) )
 	{
-	  printf("ONE CAN ONLY GIVE log10b_pi, log10alpha_fR OR log10bhs OR c0_des,j0_des \n");
+	  printf("ONE CAN ONLY GIVE log10b_pi, log10alpha_fR OR log10bhs OR c0_des,log10j0_des \n");
 	  exit(1);
 	}
       else
 	{
-	  if ( (pba->c0_des != 0.) || (pba->j0_des != 0.) )
+	  if ( (pba->c0_des != 0.) || (pba->log10j0_des != -1e2) )
 		{
+		  pba->j0_des = pow(10.,pba->log10j0_des);
 		  pba->has_fR = _TRUE_;
 		  printf("RUNNING HORNDESKI DESIGNER MODEL WITH w=-1 \n");
 		}
