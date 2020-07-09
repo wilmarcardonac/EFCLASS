@@ -12,9 +12,9 @@ import matplotlib.pyplot as py
 
 cambunits = (2.726e6)**2
 
-Cl = np.loadtxt('./output/Cl_designer_lcdm_cl.dat',unpack=True)
+#Cl = np.loadtxt('./output/Cl_designer_lcdm_cl.dat',unpack=True)
 
-Cl1 = np.loadtxt('./output/Cl_lcdm_cl.dat',unpack=True)
+#Cl1 = np.loadtxt('./output/Cl_lcdm_cl.dat',unpack=True)
 
 #Cl1 = np.loadtxt('./output/Cl_husawicki_cl.dat',unpack=True)
 #Cl2 = np.loadtxt('./output/Cl_husawicki_cl_old.dat',unpack=True)
