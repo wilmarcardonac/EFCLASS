@@ -1080,8 +1080,8 @@ int input_read_parameters(
 	  ppt->ceff2 = 1.;
 	}
 
-      class_test( ppt->ceff2 < 0. || ppt->ceff2 > 1.,errmsg,
-		  "NEGATIVE OR SUPERLUMINAL DARK ENERGY EFFECTIVE SOUND SPEED %e; cs2_fld = %e; f_pi = %e",ppt->ceff2,pba->cs2_fld,ppt->f_pi);
+      /*class_test( ppt->ceff2 < 0. || ppt->ceff2 > 1.,errmsg,
+	"NEGATIVE OR SUPERLUMINAL DARK ENERGY EFFECTIVE SOUND SPEED %e; cs2_fld = %e; f_pi = %e",ppt->ceff2,pba->cs2_fld,ppt->f_pi); */
 
       //      printf("parameters: cs2fld = %e ceff2 = %e \n",pba->cs2_fld,ppt->ceff2);
       //exit(1);
