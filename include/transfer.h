@@ -54,6 +54,7 @@ struct transfers {
 
   double selection_bias[_SELECTION_NUM_MAX_];               /**< light-to-mass bias in the transfer function of density number count */
   double selection_magnification_bias[_SELECTION_NUM_MAX_]; /**< magnification bias in the transfer function of density number count */
+  double nc_bias_b0;         /**< Constant rescaling of the density transfer function, which may serve as normalization of sources bias at z=0 (e.g., b(z)=b0*sqrt(1+z)) */
 
   short has_nz_file;     /**< Has dN/dz (selection function) input file? */
   short has_nz_analytic; /**< Use analytic form for dN/dz (selection function) distribution? */
