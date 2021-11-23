@@ -1002,13 +1002,28 @@ cdef class Class:
 
     def h(self):
         return self.ba.h
+
+    #cambiar lensing
+    def H0(self):
+        return self.ba.h*100
+    
+    #cambiar lensing
+    def w0_fld(self):
+        return self.ba.w0_fld
     
     #cambiar
     def alpha_model(self):
         return self.ba.alpha_model
 
+    #cambiar
+    def nc_bias_b0(self):
+        return self.tr.nc_bias_b0
+
     def n_s(self):
         return self.pm.n_s
+
+    def non_diag(self):
+        return self.sp.non_diag
 
     def tau_reio(self):
         return self.th.tau_reio
@@ -1727,6 +1742,8 @@ cdef class Class:
                 value = self.sp.sigma8_cb
             elif name == 'alpha_model':
                 value = self.ba.alpha_model
+            elif name == 'nc_bias_b0':
+                value = self.tr.nc_bias_b0
             else:
                 raise CosmoSevereError("%s was not recognized as a derived parameter" % name)
             derived[name] = value

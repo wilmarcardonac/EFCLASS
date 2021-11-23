@@ -123,6 +123,7 @@ cdef extern from "class.h":
 
     cdef struct transfers:
         ErrorMsg error_message
+        double nc_bias_b0
 
     cdef struct primordial:
         ErrorMsg error_message
