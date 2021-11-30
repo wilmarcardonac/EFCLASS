@@ -966,6 +966,24 @@ cdef class Class:
     def h(self):
         return self.ba.h
 
+    def e_pi(self):
+        return self.pt.e_pi
+
+    def log10cs2_fld(self):
+        return self.pt.log10cs2_fld
+
+    def Omega0_fld(self):
+        return self.ba.Omega0_fld
+
+    def w0_fld(self):
+        return self.ba.w0_fld
+
+    def wa_fld(self):
+        return self.ba.wa_fld
+
+    def cs2_fld(self):
+        return self.ba.cs2_fld
+
     def n_s(self):
         return self.pm.n_s
 
@@ -1660,6 +1678,16 @@ cdef class Class:
                 value = self.sp.sigma8
             elif name == 'sigma8_cb':
                 value = self.sp.sigma8_cb
+            elif name == 'e_pi':
+                value = self.pt.e_pi
+            elif name == 'log10cs2_fld':
+                value = self.pt.log10cs2_fld
+            elif name == 'w0_fld':
+                value = self.ba.w0_fld
+            elif name == 'wa_fld':
+                value = self.ba.wa_fld
+            elif name == 'cs2_fld':
+                value = self.ba.cs2_fld
             else:
                 raise CosmoSevereError("%s was not recognized as a derived parameter" % name)
             derived[name] = value

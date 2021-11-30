@@ -110,7 +110,8 @@ cdef extern from "class.h":
         int number_of_scalar_titles
         int number_of_vector_titles
         int number_of_tensor_titles
-
+        double e_pi
+        double log10cs2_fld
 
         double * scalar_perturbations_data[_MAX_NUMBER_OF_K_FILES_]
         double * vector_perturbations_data[_MAX_NUMBER_OF_K_FILES_]
@@ -121,6 +122,7 @@ cdef extern from "class.h":
 
     cdef struct transfers:
         ErrorMsg error_message
+        double nc_bias_b0
 
     cdef struct primordial:
         ErrorMsg error_message
