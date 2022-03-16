@@ -380,6 +380,14 @@ struct perturbations
 
   //@}
 
+  /** @name - physical parameters */
+
+  //@{                                                                                                             
+  double e_pi; /* Dark Energy Anisotropic stress parameter */
+  double log10cs2_fld; /* LOG10 DARK ENERGY SOUND SPEED */
+
+  //@}   
+
   /** @name - arrays related to the interpolation table for sources at late times, corresponding to z < z_max_pk (used for Fourier transfer function and spectra output) */
 
   //@{

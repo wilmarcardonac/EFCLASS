@@ -2981,7 +2981,14 @@ int input_read_parameters_species(struct file_content * pfc,
       /* Read */
       class_read_double("w0_fld",pba->w0_fld);
       class_read_double("wa_fld",pba->wa_fld);
-      class_read_double("cs2_fld",pba->cs2_fld);
+      //class_read_double("cs2_fld",pba->cs2_fld);
+      class_read_double("log10cs2_fld",ppt->log10cs2_fld);
+      pba->cs2_fld = pow(10.,ppt->log10cs2_fld);
+      class_read_double("e_pi",ppt->e_pi);
+      /* printf(" -> log10cs2_fld = %g\n",ppt->log10cs2_fld);
+      printf(" -> cs2_fld = %g\n",pba->cs2_fld);
+      printf(" -> e_pi = %g\n",ppt->e_pi);
+      exit(1); */
     }
     if (pba->fluid_equation_of_state == EDE) {
       /** 8.a.2.3) Equation of state of the fluid in 'EDE' case */
@@ -5499,6 +5506,8 @@ int input_default_params(struct background *pba,
   pba->cs2_fld = 1.;
   /** 9.a.2.1) 'CLP' case */
   pba->wa_fld = 0.;
+  ppt->e_pi = 0.;
+  ppt->log10cs2_fld = 0.;
   /** 9.a.2.2) 'EDE' case */
   pba->Omega_EDE = 0.;
   /** 9.b) Omega scalar field */

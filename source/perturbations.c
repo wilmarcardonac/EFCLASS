@@ -6765,6 +6765,8 @@ int perturbations_total_stress_energy(
   int index_q,n_ncdm,idx;
   double epsilon,q,q2,cg2_ncdm,w_ncdm,rho_ncdm_bg,p_ncdm_bg,pseudo_p_ncdm;
   double w_fld,dw_over_da_fld,integral_fld;
+  double pi_fld;
+  double shear_fld=0.;
   double gwncdm;
   double rho_relativistic;
   double rho_dr_over_f;
@@ -7154,11 +7156,20 @@ int perturbations_total_stress_energy(
       w_prime_fld = dw_over_da_fld * a_prime_over_a * a;
 
       if (pba->use_ppf == _FALSE_) {
+
+	pi_fld = ppt->e_pi*(y[ppw->pv->index_pt_delta_cdm] + 3.*a_prime_over_a*y[ppw->pv->index_pt_theta_cdm]/k2 );
+	/* + ppt->f_pi*( y[ppw->pv->index_pt_delta_fld] + 3.*a_prime_over_a*(1.+w_fld)*y[ppw->pv->index_pt_theta_fl \
+d]/k2  )/(1.
+          + ppt->g_pi*ppt->g_pi*a_prime_over_a*a_prime_over_a/k2) ; */
+        shear_fld = 2.*pi_fld/3./(1.+w_fld);
+
         ppw->delta_rho_fld = ppw->pvecback[pba->index_bg_rho_fld]*y[ppw->pv->index_pt_delta_fld];
         ppw->rho_plus_p_theta_fld = (1.+w_fld)*ppw->pvecback[pba->index_bg_rho_fld]*y[ppw->pv->index_pt_theta_fld];
 	ca2_fld = w_fld - w_prime_fld / 3. / (1.+w_fld) / a_prime_over_a;
 	/** We must gauge transform the pressure perturbation from the fluid rest-frame to the gauge we are working in */
 	ppw->delta_p_fld = pba->cs2_fld * ppw->delta_rho_fld + (pba->cs2_fld-ca2_fld)*(3*a_prime_over_a*ppw->rho_plus_p_theta_fld/k/k);
+	ppw->rho_plus_p_shear += (1.+w_fld)*ppw->pvecback[pba->index_bg_rho_fld]*shear_fld;
+
       }
       else {
         s2sq = ppw->s_l[2]*ppw->s_l[2];
@@ -8657,7 +8668,7 @@ int perturbations_derivs(double tau,
   double P0,P1,P2;
 
   /* for use with fluid (fld): */
-  double w_fld,dw_over_da_fld,w_prime_fld,integral_fld;
+  double w_fld,dw_over_da_fld,w_prime_fld,integral_fld,pi_fld;
 
   /* for use with non-cold dark matter (ncdm): */
   int index_q,n_ncdm,idx;
@@ -9133,6 +9144,11 @@ int perturbations_derivs(double tau,
         ca2 = w_fld - w_prime_fld / 3. / (1.+w_fld) / a_prime_over_a;
         cs2 = pba->cs2_fld;
 
+	pi_fld = ppt->e_pi*(y[pv->index_pt_delta_cdm] + 3.*a_prime_over_a*y[pv->index_pt_theta_cdm]/k2 );
+	/* + ppt->f_pi*( y[pv->index_pt_delta_fld] + 3.*a_prime_over_a*(1.+w_fld)*y[pv->index_pt_theta_fld]/ \
+k2  )/(1.
++ ppt->g_pi*ppt->g_pi*a_prime_over_a*a_prime_over_a/k2) ; */
+
         /** - ----> fluid density */
 
         dy[pv->index_pt_delta_fld] =
@@ -9145,7 +9161,8 @@ int perturbations_derivs(double tau,
         dy[pv->index_pt_theta_fld] = /* fluid velocity */
           -(1.-3.*cs2)*a_prime_over_a*y[pv->index_pt_theta_fld]
           +cs2*k2/(1.+w_fld)*y[pv->index_pt_delta_fld]
-          +metric_euler;
+          +metric_euler
+          -2.*pi_fld*k2/3./(1.+w_fld);
       }
       else {
         dy[pv->index_pt_Gamma_fld] = ppw->Gamma_prime_fld; /* Gamma variable of PPF formalism */

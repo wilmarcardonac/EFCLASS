@@ -38,33 +38,33 @@ import matplotlib.pyplot as py
 
 # LCDM_NU
 
-Cl = np.loadtxt('./output/Cl_lcdm_nu_cl.dat',unpack=True)
-Clp = np.loadtxt('./output/Cl_lcdm_nu_pk.dat',unpack=True)
-back = np.loadtxt('./output/Cl_lcdm_nu_background.dat',unpack=True)
+Cl = np.loadtxt('./output/Cl_lcdm_00_cl.dat',unpack=True)
+Clp = np.loadtxt('./output/Cl_lcdm_00_pk.dat',unpack=True)
+back = np.loadtxt('./output/Cl_lcdm_00_background.dat',unpack=True)
 
 # ewCDM
 
-Cl5 = np.loadtxt('./output/Cl_ewcdm_cl.dat',unpack=True)
-Cl5p = np.loadtxt('./output/Cl_ewcdm_pk.dat',unpack=True)
-back5 = np.loadtxt('./output/Cl_ewcdm_background.dat',unpack=True)
+Cl5 = np.loadtxt('./output/Cl_ewcdm_00_cl.dat',unpack=True)
+Cl5p = np.loadtxt('./output/Cl_ewcdm_00_pk.dat',unpack=True)
+back5 = np.loadtxt('./output/Cl_ewcdm_00_background.dat',unpack=True)
 
 # FIGURES
 
 #py.plot(-np.log(1.+back2[0]),back2[3],label=r'HS')
-py.plot(-np.log(1.+back[0]),back[3],label=r'$\Lambda CDM$',color='red',ls='dotted')
+#py.plot(-np.log(1.+back[0]),back[3],label=r'$\Lambda CDM$',color='red',ls='dotted')
 #py.plot(-np.log(1.+back[0]),abs(1.-back2[3]/back[3])*1.e2,label=r'$\% diff. HS$')
 #py.plot(-np.log(1.+back[0]),abs(1.-back3[3]/back[3])*1.e2,label=r'$\% diff. Granda$')
 #py.plot(-np.log(1.+back4[0]),back4[3],label=r'$HORNDESKI DES$',color='blue',ls='dashed')
-py.plot(-np.log(1.+back5[0]),back5[3],label=r'$ewcdm$',color='blue',ls='dashed')
-py.xlabel(r'$x$')
-py.ylabel(r'$H(x)$')
+#py.plot(-np.log(1.+back5[0]),back5[3],label=r'$ewcdm$',color='blue',ls='dashed')
+#py.xlabel(r'$x$')
+#py.ylabel(r'$H(x)$')
 #py.xscale('linear')
-py.legend(loc=0)
+#py.legend(loc=0)
 #py.savefig('./output/Cl_husawicki_background.pdf')
 #py.savefig('./output/Cl_granda_background.pdf')
 #py.savefig('./output/Cl_designer_horndeski_background.pdf')
-py.savefig('./output/Cl_ewcdm_background.pdf')
-py.close()
+#py.savefig('./output/Cl_ewcdm_background.pdf')
+#py.close()
 
 Tfactor = (2.726e6)**2
 
@@ -76,7 +76,7 @@ Tfactor = (2.726e6)**2
 #py.loglog(Cl2[0],Cl2[1]*Tfactor,label=r'HS')
 #py.loglog(Cl3[0],Cl3[1]*Tfactor,label=r'Granda')
 #py.loglog(Cl4[0],Cl4[1]*Tfactor,label=r'$w=-1$ HORNDESKI DES')
-py.loglog(Cl5[0],Cl5[1]*Tfactor,label=r'$ewCDM')
+py.loglog(Cl5[0],Cl5[1]*Tfactor,label=r'$e_\pi wCDM$')
 py.loglog(Cl[0],Cl[1]*Tfactor,label=r'$\Lambda CDM$')
 py.xlabel(r'$\ell$')
 py.ylabel(r'$\ell(\ell+1)C_\ell/2\pi$')
@@ -94,7 +94,7 @@ py.close()
 
 # EE
 
-py.loglog(Cl5[0],Cl5[2],label=r'ewcdm')
+py.loglog(Cl5[0],Cl5[2],label=r'$e_\pi wcdm$')
 #py.loglog(Cl4[0],Cl4[2],label=r'$w=-1$ HORNDESKI DES')
 #py.loglog(Cl3[0],Cl3[2],label=r'Granda')
 #py.loglog(Cl2[0],Cl2[2],label=r'HS')
@@ -118,7 +118,7 @@ py.close()
 #py.loglog(Cl3[0],abs(Cl3[3]),label=r'Granda')
 #py.loglog(Cl2[0],abs(Cl2[3]),label=r'HS')
 #py.loglog(Cl4[0],abs(Cl4[3]),label=r'$w=-1$ HORNDESKI DES')
-py.loglog(Cl5[0],abs(Cl5[3]),label=r'ewCDM')
+py.loglog(Cl5[0],abs(Cl5[3]),label=r'$e_\pi wCDM$')
 py.loglog(Cl[0],abs(Cl[3]),label=r'$\Lambda CDM$')
 py.xlabel(r'$\ell$')
 #py.ylabel(r'$\ell(\ell+1)C_\ell/2\pi$')
@@ -134,7 +134,7 @@ py.legend(loc=0)
 py.savefig('./output/Cl_ewcdm_cl_TE.pdf')
 py.close()
 
-py.loglog(Cl5p[0],Cl5p[1],label=r'ewCDM')
+py.loglog(Cl5p[0],Cl5p[1],label=r'$e_\pi wCDM$')
 #py.loglog(Cl4p[0],Cl4p[1],label=r'$w=-1$ HORNDESKI DES')
 #py.loglog(Cl2p[0],Cl2p[1],label=r'HS')
 #py.loglog(Cl1p[0],Cl1p[1],label=r'DES')

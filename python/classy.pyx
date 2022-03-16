@@ -1372,6 +1372,12 @@ cdef class Class:
     def h(self):
         return self.ba.h
 
+    def e_pi(self):
+        return self.pt.e_pi
+
+    def log10cs2_fld(self):
+        return self.pt.log10cs2_fld
+
     def n_s(self):
         return self.pm.n_s
 
@@ -2359,6 +2365,10 @@ cdef class Class:
                 value = self.fo.sigma8[self.fo.index_pk_m]
             elif name == 'sigma8_cb':
                 value = self.fo.sigma8[self.fo.index_pk_cb]
+            elif name == 'e_pi':
+                value = self.pt.e_pi
+            elif name == 'log10cs2_fld':
+                value = self.pt.log10cs2_fld
             elif name == 'k_eq':
                 value = self.ba.a_eq*self.ba.H_eq
             elif name == 'g_sd':
