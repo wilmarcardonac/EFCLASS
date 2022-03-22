@@ -7157,10 +7157,8 @@ int perturbations_total_stress_energy(
 
       if (pba->use_ppf == _FALSE_) {
 
-	pi_fld = ppt->e_pi*(y[ppw->pv->index_pt_delta_cdm] + 3.*a_prime_over_a*y[ppw->pv->index_pt_theta_cdm]/k2 );
-	/* + ppt->f_pi*( y[ppw->pv->index_pt_delta_fld] + 3.*a_prime_over_a*(1.+w_fld)*y[ppw->pv->index_pt_theta_fl \
-d]/k2  )/(1.
-          + ppt->g_pi*ppt->g_pi*a_prime_over_a*a_prime_over_a/k2) ; */
+	pi_fld = ppt->e_pi*(y[ppw->pv->index_pt_delta_cdm] + 3.*a_prime_over_a*y[ppw->pv->index_pt_theta_cdm]/k2 )
+	 + ppt->f_pi*( y[ppw->pv->index_pt_delta_fld] + 3.*a_prime_over_a*(1.+w_fld)*y[ppw->pv->index_pt_theta_fld]/k2  )/(1. + ppt->g_pi*ppt->g_pi*a_prime_over_a*a_prime_over_a/k2) ;
         shear_fld = 2.*pi_fld/3./(1.+w_fld);
 
         ppw->delta_rho_fld = ppw->pvecback[pba->index_bg_rho_fld]*y[ppw->pv->index_pt_delta_fld];
@@ -9144,10 +9142,7 @@ int perturbations_derivs(double tau,
         ca2 = w_fld - w_prime_fld / 3. / (1.+w_fld) / a_prime_over_a;
         cs2 = pba->cs2_fld;
 
-	pi_fld = ppt->e_pi*(y[pv->index_pt_delta_cdm] + 3.*a_prime_over_a*y[pv->index_pt_theta_cdm]/k2 );
-	/* + ppt->f_pi*( y[pv->index_pt_delta_fld] + 3.*a_prime_over_a*(1.+w_fld)*y[pv->index_pt_theta_fld]/ \
-k2  )/(1.
-+ ppt->g_pi*ppt->g_pi*a_prime_over_a*a_prime_over_a/k2) ; */
+	pi_fld = ppt->e_pi*(y[pv->index_pt_delta_cdm] + 3.*a_prime_over_a*y[pv->index_pt_theta_cdm]/k2 ) + ppt->f_pi*( y[pv->index_pt_delta_fld] + 3.*a_prime_over_a*(1.+w_fld)*y[pv->index_pt_theta_fld]/k2  )/(1. + ppt->g_pi*ppt->g_pi*a_prime_over_a*a_prime_over_a/k2) ; 
 
         /** - ----> fluid density */
 

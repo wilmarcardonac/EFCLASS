@@ -2982,13 +2982,25 @@ int input_read_parameters_species(struct file_content * pfc,
       class_read_double("w0_fld",pba->w0_fld);
       class_read_double("wa_fld",pba->wa_fld);
       //class_read_double("cs2_fld",pba->cs2_fld);
-      class_read_double("log10cs2_fld",ppt->log10cs2_fld);
-      pba->cs2_fld = pow(10.,ppt->log10cs2_fld);
+      //class_read_double("log10cs2_fld",ppt->log10cs2_fld);
+      //pba->cs2_fld = pow(10.,ppt->log10cs2_fld);
+      class_read_double("log10ceff2",ppt->log10ceff2);
+      ppt->ceff2 = pow(10.,ppt->log10ceff2);
       class_read_double("e_pi",ppt->e_pi);
-      /* printf(" -> log10cs2_fld = %g\n",ppt->log10cs2_fld);
+      class_read_double("f_pi",ppt->f_pi);
+      class_read_double("log10g_pi",ppt->log10g_pi);
+      ppt->g_pi = pow(10.,ppt->log10g_pi);
+      pba->cs2_fld = ppt->ceff2 + 2.*ppt->f_pi/3.;
+      /*printf(" -> log10ceff2 = %g\n",ppt->log10ceff2);
+      printf(" -> ceff2 = %g\n",ppt->ceff2);
       printf(" -> cs2_fld = %g\n",pba->cs2_fld);
       printf(" -> e_pi = %g\n",ppt->e_pi);
-      exit(1); */
+      printf(" -> f_pi = %g\n",ppt->f_pi);
+      printf(" -> log10g_pi = %g\n",ppt->log10g_pi);
+      printf(" -> g_pi = %g\n",ppt->g_pi);
+      exit(1);*/
+
+      class_test( ppt->ceff2 < 0. || ppt->ceff2 > 1.,errmsg,"NEGATIVE OR SUPERLUMINAL DARK ENERGY EFFECTIVE SOUND SPEED %e; cs2_fld = %e; f_pi = %e",ppt->ceff2,pba->cs2_fld,ppt->f_pi);
     }
     if (pba->fluid_equation_of_state == EDE) {
       /** 8.a.2.3) Equation of state of the fluid in 'EDE' case */
@@ -5508,6 +5520,9 @@ int input_default_params(struct background *pba,
   pba->wa_fld = 0.;
   ppt->e_pi = 0.;
   ppt->log10cs2_fld = 0.;
+  ppt->f_pi = 0.;
+  ppt->log10g_pi = -10.;
+  ppt->log10ceff2 = 0.;
   /** 9.a.2.2) 'EDE' case */
   pba->Omega_EDE = 0.;
   /** 9.b) Omega scalar field */

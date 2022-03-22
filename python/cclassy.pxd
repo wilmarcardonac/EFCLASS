@@ -167,6 +167,11 @@ cdef extern from "class.h":
         int number_of_tensor_titles
         double e_pi
         double log10cs2_fld
+	double f_pi
+	double g_pi
+	double log10g_pi
+	double ceff2
+	double log10ceff2
 
 
         double * scalar_perturbations_data[_MAX_NUMBER_OF_K_FILES_]
