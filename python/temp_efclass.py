@@ -28,11 +28,10 @@ params = {
     'log10g_pi' : 1.e1,
     'use_ppf' : 'no',
     'output' : 'tCl,pCl,mPk,lCl',
-#    'l_min' : 2,
     'k_output_values' : 7.01e-2,
     'gauge' : 'newtonian',
-    'perturbations_sampling_stepsize' : 0.05}
-#    'tol_perturb_integration' : 1.e-9}
+    'perturbations_sampling_stepsize' : 0.05,
+    'format' : 'class'}
 
 # Create an instance of the CLASS wrapper
 cosmo = Class()
@@ -49,16 +48,16 @@ cosmo.set(params)
 cosmo.compute()
 
 # Access the lensed cl until l=2000
-cls = cosmo.density_cl(2000)
+cls = cosmo.lensed_cl(2000)
 
 # Print on screen to see the output
-#print cls
+print cls
 
 # plot something with matplotlib...
 
-ell=arange(0,len(cls[0]),1)
-plot(ell,ell*(ell+1.)/2/pi*cls[0])
-show()
+#ell=arange(0,len(cls[0]),1)
+#plot(ell,ell*(ell+1.)/2/pi*cls[0])
+#show()
 
 #with open("../output/test_cl.dat") as f:
 #    data = f.read()
