@@ -165,13 +165,6 @@ cdef extern from "class.h":
         int number_of_scalar_titles
         int number_of_vector_titles
         int number_of_tensor_titles
-        double e_pi
-        double log10cs2_fld
-	double f_pi
-	double g_pi
-	double log10g_pi
-	double ceff2
-	double log10ceff2
 
 
         double * scalar_perturbations_data[_MAX_NUMBER_OF_K_FILES_]
@@ -200,7 +193,14 @@ cdef extern from "class.h":
         double * ln_tau
         int ln_tau_size
         int index_ln_tau_pk
-
+        double e_pi
+        double f_pi
+        double g_pi
+        double log10g_pi
+        double log10cs2_fld
+        double ceff2
+        double log10ceff2	
+	
     cdef struct transfer:
         ErrorMsg error_message
 

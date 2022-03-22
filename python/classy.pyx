@@ -1378,6 +1378,21 @@ cdef class Class:
     def log10cs2_fld(self):
         return self.pt.log10cs2_fld
 
+    def f_pi(self):
+        return self.pt.f_pi
+
+    def g_pi(self):
+        return self.pt.g_pi
+
+    def log10g_pi(self):
+        return self.pt.log10g_pi
+
+    def ceff2(self):
+        return self.pt.ceff2
+
+    def log10ceff2(self):
+        return self.pt.log10ceff2
+
     def n_s(self):
         return self.pm.n_s
 
@@ -2365,10 +2380,6 @@ cdef class Class:
                 value = self.fo.sigma8[self.fo.index_pk_m]
             elif name == 'sigma8_cb':
                 value = self.fo.sigma8[self.fo.index_pk_cb]
-            elif name == 'e_pi':
-                value = self.pt.e_pi
-            elif name == 'log10cs2_fld':
-                value = self.pt.log10cs2_fld
             elif name == 'k_eq':
                 value = self.ba.a_eq*self.ba.H_eq
             elif name == 'g_sd':
@@ -2377,6 +2388,20 @@ cdef class Class:
                 value = self.sd.sd_parameter_table[1]
             elif name == 'mu_sd':
                 value = self.sd.sd_parameter_table[2]
+            elif name == 'e_pi':
+                value = self.pt.e_pi		
+            elif name == 'log10cs2_fld':
+                value = self.pt.log10cs2_fld		
+            elif name == 'f_pi':
+                value = self.pt.f_pi		
+            elif name == 'g_pi':
+                value = self.pt.g_pi		
+            elif name == 'log10g_pi':
+                value = self.pt.log10g_pi		
+            elif name == 'ceff2':
+                value = self.pt.ceff2		
+            elif name == 'log10ceff2':
+                value = self.pt.log10ceff2		
             else:
                 raise CosmoSevereError("%s was not recognized as a derived parameter" % name)
             derived[name] = value
