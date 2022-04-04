@@ -30,7 +30,7 @@ AR        = ar rv
 # substitute python3 to python in the line below, or you can simply
 # add a compilation option on the terminal command line:
 # "PYTHON=python3 make all" (Thanks to Marius Millea for python3 compatibility)
-PYTHON ?= python3
+PYTHON ?= python
 
 # your optimization flag
 OPTFLAG = -O3
