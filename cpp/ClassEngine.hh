@@ -10,7 +10,6 @@
 //
 // History (add to end):
 //	creation:   ven. nov. 4 11:02:20 CET 2011
-//  updated to class v2.1 by Julien Lesgourgues (7 March 2014)
 //
 //-----------------------------------------------------------------------
 
@@ -70,16 +69,16 @@ class ClassEngine : public Engine
 
 public:
   //constructors
-  ClassEngine(const ClassParams& pars);
+  ClassEngine(const ClassParams& pars, bool verbose=true );
   //with a class .pre file
-  ClassEngine(const ClassParams& pars,const string & precision_file);
+  ClassEngine(const ClassParams& pars, const string & precision_file, bool verbose=true);
 
 
   // destructor
   ~ClassEngine();
 
   //modfiers: _FAILURE_ returned if CLASS pb:
-  int updateParValues(const std::vector<double>& par);
+  bool updateParValues(const std::vector<double>& par);
 
 
   //get value at l ( 2<l<lmax): in units = (micro-K)^2
@@ -92,22 +91,53 @@ public:
 	      std::vector<double>& clte,
 	      std::vector<double>& clee,
 	      std::vector<double>& clbb);
-
-
   bool getLensing(const std::vector<unsigned>& lVec, //input
 	      std::vector<double>& clphiphi,
 	      std::vector<double>& cltphi,
 	      std::vector<double>& clephi);
 
+  void call_perturb_sources_at_tau(
+                           int index_md,
+                           int index_ic,
+                           int index_tp,
+                           double tau,
+                           double * psource
+                           );
+
+  void getTk( double z,
+        std::vector<double>& k,
+        std::vector<double>& d_cdm,
+        std::vector<double>& d_b,
+        std::vector<double>& d_ncdm,
+        std::vector<double>& d_tot,
+        std::vector<double>& t_cdm,
+        std::vector<double>& t_b,
+        std::vector<double>& t_ncdm,
+        std::vector<double>& t_tot );
+
+ //for BAO
+  inline double z_drag() const {return th.z_d;}
+  inline double rs_drag() const {return th.rs_d;}
+  double get_Dv(double z);
+
+  double get_Da(double z);
+  double get_sigma8(double z);
+  double get_f(double z);
+
+  double get_Fz(double z);
+  double get_Hz(double z);
+  double get_Az(double z);
+
+  double getTauReio() const {return th.tau_reio;}
 
   //may need that
   inline int numCls() const {return sp.ct_size;};
   inline double Tcmb() const {return ba.T_cmb;}
 
+  inline int l_max_scalars() const {return _lmax;}
+
   //print content of file_content
   void printFC();
-  void writeCls(std::ostream &o,int lmax);
-
 
 private:
   //structures class en commun
@@ -121,6 +151,7 @@ private:
   struct spectra sp;          /* for output spectra */
   struct nonlinear nl;        /* for non-linear spectra */
   struct lensing le;          /* for lensed spectra */
+  struct distortions sd;      /* for spectral distortions */
   struct output op;           /* for output files */
 
   ErrorMsg _errmsg;            /* for error messages */
@@ -134,24 +165,26 @@ private:
   int computeCls();
 
   int class_main(
-                 struct file_content *pfc,
-                 struct precision * ppr,
-                 struct background * pba,
-                 struct thermo * pth,
-                 struct perturbs * ppt,
-                 struct primordial * ppm,
-                 struct nonlinear * pnl,
-                 struct transfers * ptr,
-                 struct spectra * psp,
-                 struct lensing * ple,
-                 struct output * pop,
-                 ErrorMsg errmsg);
+		 struct file_content *pfc,
+		 struct precision * ppr,
+		 struct background * pba,
+		 struct thermo * pth,
+		 struct perturbs * ppt,
+		 struct transfers * ptr,
+		 struct primordial * ppm,
+		 struct spectra * psp,
+		 struct nonlinear * pnl,
+		 struct lensing * ple,
+		 struct distortions * psd,
+		 struct output * pop,
+		 ErrorMsg errmsg);
+  //parnames
+  std::vector<std::string> parNames;
 
 protected:
 
 
 };
 
-
-;
 #endif
+

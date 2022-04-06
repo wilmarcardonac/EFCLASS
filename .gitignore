@@ -1,0 +1,7 @@
+output/*
+build/*
+class
+*~
+libclass.a
+python/build/
+python/classy.c

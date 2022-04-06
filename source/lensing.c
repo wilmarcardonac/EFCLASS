@@ -10,7 +10,7 @@
  *
  * The following functions can be called from other modules:
  *
- * -# lensing_init() at the beginning (but after spectra_init())
+ * -# lensing_init() at the beginning (but after harmonic_init())
  * -# lensing_cl_at_l() at any time for computing Cl_lensed at any l
  * -# lensing_free() at the end
  */
@@ -19,10 +19,10 @@
 #include <time.h>
 
 /**
- * Anisotropy power spectra C_l's for all types, modes and initial conditions.
+ * Anisotropy power spectra \f$ C_l\f$'s for all types, modes and initial conditions.
  * SO FAR: ONLY SCALAR
  *
- * This routine evaluates all the lensed C_l's at a given value of l by
+ * This routine evaluates all the lensed \f$ C_l\f$'s at a given value of l by
  * picking it in the pre-computed table. When relevant, it also
  * sums over all initial conditions for each mode, and over all modes.
  *
@@ -30,9 +30,9 @@
  * provided that lensing_init() has been called before, and
  * lensing_free() has not been called yet.
  *
- * @param ple        Input : pointer to lensing structure
- * @param l          Input : multipole number
- * @param cl_lensed  Output: lensed C_l's for all types (TT, TE, EE, etc..)
+ * @param ple        Input: pointer to lensing structure
+ * @param l          Input: multipole number
+ * @param cl_lensed  Output: lensed \f$ C_l\f$'s for all types (TT, TE, EE, etc..)
  * @return the error status
  */
 
@@ -73,22 +73,24 @@ int lensing_cl_at_l(
  * This routine initializes the lensing structure (in particular,
  * computes table of lensed anisotropy spectra \f$ C_l^{X} \f$)
  *
- * @param ppt Input : pointer to perturbation structure (just in case, not used in current version...)
- * @param psp Input : pointer to spectra structure
- * @param pnl Input : pointer to nonlinear structure
+ * @param ppr Input: pointer to precision structure
+ * @param ppt Input: pointer to perturbation structure (just in case, not used in current version...)
+ * @param phr Input: pointer to harmonic structure
+ * @param pfo Input: pointer to fourier structure
  * @param ple Output: pointer to initialized lensing structure
  * @return the error status
  */
 
 int lensing_init(
                  struct precision * ppr,
-                 struct perturbs * ppt,
-                 struct spectra * psp,
-                 struct nonlinear * pnl,
+                 struct perturbations * ppt,
+                 struct harmonic * phr,
+                 struct fourier * pfo,
                  struct lensing * ple
                  ) {
 
-  /** local variables */
+  /** Summary: */
+  /** - Define local variables */
 
   double * mu; /* mu[index_mu]: discretized values of mu
                   between -1 and 1, roots of Legendre polynomial */
@@ -98,25 +100,25 @@ int lensing_init(
   double ** d00;  /* dmn[index_mu][index_l] */
   double ** d11;
   double ** d2m2;
-  double ** d22;
-  double ** d20;
+  double ** d22 = NULL;
+  double ** d20 = NULL;
   double ** d1m1;
-  double ** d31;
-  double ** d40;
-  double ** d3m1;
-  double ** d3m3;
-  double ** d4m2;
-  double ** d4m4;
+  double ** d31 = NULL;
+  double ** d40 = NULL;
+  double ** d3m1 = NULL;
+  double ** d3m3 = NULL;
+  double ** d4m2 = NULL;
+  double ** d4m4 = NULL;
   double * buf_dxx; /* buffer */
 
   double * Cgl;   /* Cgl[index_mu] */
   double * Cgl2;  /* Cgl2[index_mu] */
   double * sigma2; /* sigma[index_mu] */
 
-  double * ksi;  /* ksi[index_mu] */
-  double * ksiX;  /* ksiX[index_mu] */
-  double * ksip;  /* ksip[index_mu] */
-  double * ksim;  /* ksim[index_mu] */
+  double * ksi = NULL;  /* ksi[index_mu] */
+  double * ksiX = NULL;  /* ksiX[index_mu] */
+  double * ksip = NULL;  /* ksip[index_mu] */
+  double * ksim = NULL;  /* ksim[index_mu] */
 
   double fac,fac1;
   double X_000;
@@ -132,11 +134,11 @@ int lensing_init(
   int l;
   double ll;
   double * cl_unlensed;  /* cl_unlensed[index_ct] */
-  double * cl_tt; /* unlensed  cl, to be filled to avoid repeated calls to spectra_cl_at_l */
-  double * cl_te; /* unlensed  cl, to be filled to avoid repeated calls to spectra_cl_at_l */
-  double * cl_ee; /* unlensed  cl, to be filled to avoid repeated calls to spectra_cl_at_l */
-  double * cl_bb; /* unlensed  cl, to be filled to avoid repeated calls to spectra_cl_at_l */
-  double * cl_pp; /* potential cl, to be filled to avoid repeated calls to spectra_cl_at_l */
+  double * cl_tt; /* unlensed  cl, to be filled to avoid repeated calls to harmonic_cl_at_l */
+  double * cl_te = NULL; /* unlensed  cl, to be filled to avoid repeated calls to harmonic_cl_at_l */
+  double * cl_ee = NULL; /* unlensed  cl, to be filled to avoid repeated calls to harmonic_cl_at_l */
+  double * cl_bb = NULL; /* unlensed  cl, to be filled to avoid repeated calls to harmonic_cl_at_l */
+  double * cl_pp; /* potential cl, to be filled to avoid repeated calls to harmonic_cl_at_l */
 
   double res,resX,lens;
   double resp, resm, lensp, lensm;
@@ -148,7 +150,7 @@ int lensing_init(
   double * sqrt5;
 
   double ** cl_md_ic; /* array with argument
-                         cl_md_ic[index_md][index_ic1_ic2*psp->ct_size+index_ct] */
+                         cl_md_ic[index_md][index_ic1_ic2*phr->ct_size+index_ct] */
 
   double ** cl_md;    /* array with argument
                          cl_md[index_md][index_ct] */
@@ -158,8 +160,6 @@ int lensing_init(
   /* Timing */
   //double debut, fin;
   //double cpu_time;
-
-  /** Summary: */
 
   /** - check that we really want to compute at least one spectrum */
 
@@ -181,12 +181,12 @@ int lensing_init(
   /** - initialize indices and allocate some of the arrays in the
       lensing structure */
 
-  class_call(lensing_indices(ppr,psp,ple),
+  class_call(lensing_indices(ppr,phr,ple),
              ple->error_message,
              ple->error_message);
 
-  /** put here all precision variables; will be stored later in precision structure */
-  /** Last element in mu will be for mu=1, needed for sigma2
+  /** - put all precision variables hare; will be stored later in precision structure */
+  /** - Last element in \f$ \mu \f$ will be for \f$ \mu=1 \f$, needed for sigma2.
       The rest will be chosen as roots of a Gauss-Legendre quadrature **/
 
   if (ppr->accurate_lensing == _TRUE_) {
@@ -196,7 +196,7 @@ int lensing_init(
     /* Integrate correlation function difference on [0,pi/16] */
     num_mu = (ple->l_unlensed_max * 2 )/16;
   }
-  /** - allocate array of mu values, as well as quadrature weights */
+  /** - allocate array of \f$ \mu \f$ values, as well as quadrature weights */
 
   class_alloc(mu,
               num_mu*sizeof(double),
@@ -232,7 +232,7 @@ int lensing_init(
     }
   }
 
-  /** - compute d^l_mm'(mu) */
+  /** - Compute \f$ d^l_{mm'} (\mu) \f$*/
 
   icount = 0;
   class_alloc(d00,
@@ -294,7 +294,7 @@ int lensing_init(
 
   icount += 5*(ple->l_unlensed_max+1); /* for arrays sqrt1[l] to sqrt5[l] */
 
-  /** Allocate main contiguous buffer **/
+  /** - Allocate main contiguous buffer **/
   class_alloc(buf_dxx,
               icount * sizeof(double),
               ple->error_message);
@@ -401,7 +401,7 @@ int lensing_init(
                ple->error_message);
   }
 
-  /** - compute Cgl(mu), Cgl2(mu) and sigma2(mu) */
+  /** - compute \f$ Cgl(\mu)\f$, \f$ Cgl2(\mu) \f$ and sigma2(\f$\mu\f$) */
 
   class_alloc(Cgl,
               num_mu*sizeof(double),
@@ -416,11 +416,11 @@ int lensing_init(
               ple->error_message);
 
   class_alloc(cl_unlensed,
-              psp->ct_size*sizeof(double),
+              phr->ct_size*sizeof(double),
               ple->error_message);
 
 
-  /** Locally store unlensed temperature cl_tt and potential cl_pp spectra **/
+  /** - Locally store unlensed temperature \f$ cl_{tt}\f$ and potential \f$ cl_{pp}\f$ spectra **/
   class_alloc(cl_tt,
               (ple->l_unlensed_max+1)*sizeof(double),
               ple->error_message);
@@ -443,31 +443,31 @@ int lensing_init(
               ple->error_message);
 
   class_alloc(cl_md_ic,
-              psp->md_size*sizeof(double *),
+              phr->md_size*sizeof(double *),
               ple->error_message);
 
   class_alloc(cl_md,
-              psp->md_size*sizeof(double *),
+              phr->md_size*sizeof(double *),
               ple->error_message);
 
-  for (index_md = 0; index_md < psp->md_size; index_md++) {
+  for (index_md = 0; index_md < phr->md_size; index_md++) {
 
-    if (psp->md_size > 1)
+    if (phr->md_size > 1)
 
       class_alloc(cl_md[index_md],
-                  psp->ct_size*sizeof(double),
+                  phr->ct_size*sizeof(double),
                   ple->error_message);
 
-    if (psp->ic_size[index_md] > 1)
+    if (phr->ic_size[index_md] > 1)
 
       class_alloc(cl_md_ic[index_md],
-                  psp->ic_ic_size[index_md]*psp->ct_size*sizeof(double),
+                  phr->ic_ic_size[index_md]*phr->ct_size*sizeof(double),
                   ple->error_message);
   }
 
   for (l=2; l<=ple->l_unlensed_max; l++) {
-    class_call(spectra_cl_at_l(psp,l,cl_unlensed,cl_md,cl_md_ic),
-               psp->error_message,
+    class_call(harmonic_cl_at_l(phr,l,cl_unlensed,cl_md,cl_md_ic),
+               phr->error_message,
                ple->error_message);
     cl_tt[l] = cl_unlensed[ple->index_lt_tt];
     cl_pp[l] = cl_unlensed[ple->index_lt_pp];
@@ -480,12 +480,12 @@ int lensing_init(
     }
   }
 
-  for (index_md = 0; index_md < psp->md_size; index_md++) {
+  for (index_md = 0; index_md < phr->md_size; index_md++) {
 
-    if (psp->md_size > 1)
+    if (phr->md_size > 1)
       free(cl_md[index_md]);
 
-    if (psp->ic_size[index_md] > 1)
+    if (phr->ic_size[index_md] > 1)
       free(cl_md_ic[index_md]);
 
   }
@@ -493,7 +493,7 @@ int lensing_init(
   free(cl_md_ic);
   free(cl_md);
 
-  /** Compute sigma2(mu) and Cgl2(mu) **/
+  /** - Compute sigma2\f$(\mu)\f$ and Cgl2(\f$\mu\f$) **/
 
   //debut = omp_get_wtime();
 #pragma omp parallel for                        \
@@ -530,7 +530,7 @@ int lensing_init(
 
   /** - compute ksi, ksi+, ksi-, ksiX */
 
-  /** ksi is for TT **/
+  /** - --> ksi is for TT **/
   if (ple->has_tt==_TRUE_) {
 
     class_calloc(ksi,
@@ -539,7 +539,7 @@ int lensing_init(
                  ple->error_message);
   }
 
-  /** ksiX is for TE **/
+  /** - --> ksiX is for TE **/
   if (ple->has_te==_TRUE_) {
 
     class_calloc(ksiX,
@@ -548,7 +548,7 @@ int lensing_init(
                  ple->error_message);
   }
 
-  /** ksip, ksim for EE, BB **/
+  /** - --> ksip, ksim for EE, BB **/
   if (ple->has_ee==_TRUE_ || ple->has_bb==_TRUE_) {
 
     class_calloc(ksip,
@@ -595,7 +595,7 @@ int lensing_init(
       X_p000 = -fac*X_000;
       /* X_220 = 0.25*sqrt1[l] * exp(-(fac-0.5)*sigma2[index_mu]); */
       X_220 = 0.25*sqrt1[l] * X_000; /* Order 0 */
-      /* next 5 lines useless, but avoid compilator warning 'may be used uninitialized' */
+      /* next 5 lines useless, but avoid compiler warning 'may be used uninitialized' */
       X_242=0.;
       X_132=0.;
       X_121=0.;
@@ -605,8 +605,12 @@ int lensing_init(
       if (ple->has_te==_TRUE_ || ple->has_ee==_TRUE_ || ple->has_bb==_TRUE_) {
         /* X_022 = exp(-(fac-1.)*sigma2[index_mu]); */
         X_022 = X_000 * (1+sigma2[index_mu]*(1+0.5*sigma2[index_mu])); /* Order 2 */
-        X_p022 = (fac-1.)*X_022;
-        /* X_242 = 0.25*sqrt4[l]  * exp(-(fac-5./2.)*sigma2[index_mu]); */
+        X_p022 = -(fac-1.)*X_022; /* Old versions were missing the
+        minus sign in this line, which introduced a very small error
+        on the high-l C_l^TE lensed spectrum [credits for bug fix:
+        Selim Hotinli] */
+
+        /* X_242 = 0.25*sqrt4[l] * exp(-(fac-5./2.)*sigma2[index_mu]); */
         X_242 = 0.25*sqrt4[l] * X_000; /* Order 0 */
         if (ple->has_ee==_TRUE_ || ple->has_bb==_TRUE_) {
 
@@ -689,7 +693,7 @@ int lensing_init(
   //printf("time in ksi=%4.3f s\n",cpu_time);
 
 
-  /** - compute lensed Cls by integration */
+  /** - compute lensed \f$ C_l\f$'s by integration */
   //debut = omp_get_wtime();
   if (ple->has_tt==_TRUE_) {
     class_call(lensing_lensed_cl_tt(ksi,d00,w8,num_mu-1,ple),
@@ -728,7 +732,7 @@ int lensing_init(
   //cpu_time = (fin-debut);
   //printf("time in final lensing computation=%4.3f s\n",cpu_time);
 
-  /** - spline computed Cls in view of interpolation */
+  /** - spline computed \f$ C_l\f$'s in view of interpolation */
 
   class_call(array_spline_table_lines(ple->l,
                                       ple->l_size,
@@ -740,7 +744,7 @@ int lensing_init(
              ple->error_message,
              ple->error_message);
 
-  /** Free lots of stuff **/
+  /** - Free lots of stuff **/
   free(buf_dxx);
 
   free(d00);
@@ -784,7 +788,7 @@ int lensing_init(
     free(cl_bb);
   }
   free(cl_pp);
-  /** Exits **/
+  /** - Exit **/
 
   return _SUCCESS_;
 
@@ -820,21 +824,22 @@ int lensing_free(
 /**
  * This routine defines indices and allocates tables in the lensing structure
  *
- * @param psp  Input       : pointer to spectra structure
+ * @param ppr  Input: pointer to precision structure
+ * @param phr  Input: pointer to harmonic structure
  * @param ple  Input/output: pointer to lensing structure
  * @return the error status
  */
 
 int lensing_indices(
                     struct precision * ppr,
-                    struct spectra * psp,
+                    struct harmonic * phr,
                     struct lensing * ple
                     ){
 
   int index_l;
 
   double ** cl_md_ic; /* array with argument
-                         cl_md_ic[index_md][index_ic1_ic2*psp->ct_size+index_ct] */
+                         cl_md_ic[index_md][index_ic1_ic2*phr->ct_size+index_ct] */
 
   double ** cl_md;    /* array with argument
                          cl_md[index_md][index_ct] */
@@ -844,97 +849,97 @@ int lensing_indices(
 
   /* indices of all Cl types (lensed and unlensed) */
 
-  if (psp->has_tt == _TRUE_) {
+  if (phr->has_tt == _TRUE_) {
     ple->has_tt = _TRUE_;
-    ple->index_lt_tt=psp->index_ct_tt;
+    ple->index_lt_tt=phr->index_ct_tt;
   }
   else {
     ple->has_tt = _FALSE_;
   }
 
-  if (psp->has_ee == _TRUE_) {
+  if (phr->has_ee == _TRUE_) {
     ple->has_ee = _TRUE_;
-    ple->index_lt_ee=psp->index_ct_ee;
+    ple->index_lt_ee=phr->index_ct_ee;
   }
   else {
     ple->has_ee = _FALSE_;
   }
 
-  if (psp->has_te == _TRUE_) {
+  if (phr->has_te == _TRUE_) {
     ple->has_te = _TRUE_;
-    ple->index_lt_te=psp->index_ct_te;
+    ple->index_lt_te=phr->index_ct_te;
   }
   else {
     ple->has_te = _FALSE_;
   }
 
-  if (psp->has_bb == _TRUE_) {
+  if (phr->has_bb == _TRUE_) {
     ple->has_bb = _TRUE_;
-    ple->index_lt_bb=psp->index_ct_bb;
+    ple->index_lt_bb=phr->index_ct_bb;
   }
   else {
     ple->has_bb = _FALSE_;
   }
 
-  if (psp->has_pp == _TRUE_) {
+  if (phr->has_pp == _TRUE_) {
     ple->has_pp = _TRUE_;
-    ple->index_lt_pp=psp->index_ct_pp;
+    ple->index_lt_pp=phr->index_ct_pp;
   }
   else {
     ple->has_pp = _FALSE_;
   }
 
-  if (psp->has_tp == _TRUE_) {
+  if (phr->has_tp == _TRUE_) {
     ple->has_tp = _TRUE_;
-    ple->index_lt_tp=psp->index_ct_tp;
+    ple->index_lt_tp=phr->index_ct_tp;
   }
   else {
     ple->has_tp = _FALSE_;
   }
 
-  if (psp->has_dd == _TRUE_) {
+  if (phr->has_dd == _TRUE_) {
     ple->has_dd = _TRUE_;
-    ple->index_lt_dd=psp->index_ct_dd;
+    ple->index_lt_dd=phr->index_ct_dd;
   }
   else {
     ple->has_dd = _FALSE_;
   }
 
-  if (psp->has_td == _TRUE_) {
+  if (phr->has_td == _TRUE_) {
     ple->has_td = _TRUE_;
-    ple->index_lt_td=psp->index_ct_td;
+    ple->index_lt_td=phr->index_ct_td;
   }
   else {
     ple->has_td = _FALSE_;
   }
 
-  if (psp->has_ll == _TRUE_) {
+  if (phr->has_ll == _TRUE_) {
     ple->has_ll = _TRUE_;
-    ple->index_lt_ll=psp->index_ct_ll;
+    ple->index_lt_ll=phr->index_ct_ll;
   }
   else {
     ple->has_ll = _FALSE_;
   }
 
-  if (psp->has_tl == _TRUE_) {
+  if (phr->has_tl == _TRUE_) {
     ple->has_tl = _TRUE_;
-    ple->index_lt_tl=psp->index_ct_tl;
+    ple->index_lt_tl=phr->index_ct_tl;
   }
   else {
     ple->has_tl = _FALSE_;
   }
 
-  ple->lt_size = psp->ct_size;
+  ple->lt_size = phr->ct_size;
 
   /* number of multipoles */
 
-  ple->l_unlensed_max = psp->l_max_tot;
+  ple->l_unlensed_max = phr->l_max_tot;
 
   ple->l_lensed_max = ple->l_unlensed_max - ppr->delta_l_max;
 
-  for (index_l=0; (index_l < psp->l_size_max) && (psp->l[index_l] <= ple->l_lensed_max); index_l++);
+  for (index_l=0; (index_l < phr->l_size_max) && (phr->l[index_l] <= ple->l_lensed_max); index_l++);
 
-  if (index_l < psp->l_size_max) index_l++; /* one more point in order to be able to interpolate till ple->l_lensed_max */
+  if (index_l < phr->l_size_max) index_l++; /* one more point in order to be able to interpolate till ple->l_lensed_max */
 
   ple->l_size = index_l+1;
 
@@ -942,7 +947,7 @@ int lensing_indices(
 
   for (index_l=0; index_l < ple->l_size; index_l++) {
 
-    ple->l[index_l] = psp->l[index_l];
+    ple->l[index_l] = phr->l[index_l];
 
   }
 
@@ -959,42 +964,42 @@ int lensing_indices(
   /* fill with unlensed cls */
 
   class_alloc(cl_md_ic,
-              psp->md_size*sizeof(double *),
+              phr->md_size*sizeof(double *),
               ple->error_message);
 
   class_alloc(cl_md,
-              psp->md_size*sizeof(double *),
+              phr->md_size*sizeof(double *),
               ple->error_message);
 
-  for (index_md = 0; index_md < psp->md_size; index_md++) {
+  for (index_md = 0; index_md < phr->md_size; index_md++) {
 
-    if (psp->md_size > 1)
+    if (phr->md_size > 1)
 
       class_alloc(cl_md[index_md],
-                  psp->ct_size*sizeof(double),
+                  phr->ct_size*sizeof(double),
                   ple->error_message);
 
-    if (psp->ic_size[index_md] > 1)
+    if (phr->ic_size[index_md] > 1)
 
       class_alloc(cl_md_ic[index_md],
-                  psp->ic_ic_size[index_md]*psp->ct_size*sizeof(double),
+                  phr->ic_ic_size[index_md]*phr->ct_size*sizeof(double),
                   ple->error_message);
   }
 
   for (index_l=0; index_l<ple->l_size; index_l++) {
 
-    class_call(spectra_cl_at_l(psp,ple->l[index_l],&(ple->cl_lens[index_l*ple->lt_size]),cl_md,cl_md_ic),
-               psp->error_message,
+    class_call(harmonic_cl_at_l(phr,ple->l[index_l],&(ple->cl_lens[index_l*ple->lt_size]),cl_md,cl_md_ic),
+               phr->error_message,
                ple->error_message);
 
   }
 
-  for (index_md = 0; index_md < psp->md_size; index_md++) {
+  for (index_md = 0; index_md < phr->md_size; index_md++) {
 
-    if (psp->md_size > 1)
+    if (phr->md_size > 1)
       free(cl_md[index_md]);
 
-    if (psp->ic_size[index_md] > 1)
+    if (phr->ic_size[index_md] > 1)
       free(cl_md_ic[index_md]);
 
   }
@@ -1005,18 +1010,18 @@ int lensing_indices(
   /* we want to output Cl_lensed up to the same l_max as Cl_unlensed
      (even if a number delta_l_max of extra values of l have been used
      internally for more accurate results). Notable exception to the
-     above rule: ClBB_lensed(saclars) must be outputed at least up to the same l_max as
+     above rule: ClBB_lensed(scalars) must be outputed at least up to the same l_max as
      ClEE_unlensed(scalars) (since ClBB_unlensed is null for scalars)
   */
 
   class_alloc(ple->l_max_lt,ple->lt_size*sizeof(double),ple->error_message);
   for (index_lt = 0; index_lt < ple->lt_size; index_lt++) {
     ple->l_max_lt[index_lt]=0.;
-    for (index_md = 0; index_md < psp->md_size; index_md++) {
-      ple->l_max_lt[index_lt]=MAX(ple->l_max_lt[index_lt],psp->l_max_ct[index_md][index_lt]);
+    for (index_md = 0; index_md < phr->md_size; index_md++) {
+      ple->l_max_lt[index_lt]=MAX(ple->l_max_lt[index_lt],phr->l_max_ct[index_md][index_lt]);
 
       if ((ple->has_bb == _TRUE_) && (ple->has_ee == _TRUE_) && (index_lt == ple->index_lt_bb)) {
-        ple->l_max_lt[index_lt]=MAX(ple->l_max_lt[index_lt],psp->l_max_ct[index_md][ple->index_lt_ee]);
+        ple->l_max_lt[index_lt]=MAX(ple->l_max_lt[index_lt],phr->l_max_ct[index_md][ple->index_lt_ee]);
       }
 
     }
@@ -1029,10 +1034,10 @@ int lensing_indices(
 /**
  * This routine computes the lensed power spectra by Gaussian quadrature
  *
- * @param ksi  Input       : Lensed correlation function (ksi[index_mu])
- * @param d00  Input       : Legendre polynomials (d^l_{00}[l][index_mu])
- * @param w8   Input       : Legendre quadrature weights (w8[index_mu])
- * @param nmu  Input       : Number of quadrature points (0<=index_mu<=nmu)
+ * @param ksi  Input: Lensed correlation function (ksi[index_mu])
+ * @param d00  Input: Legendre polynomials (\f$ d^l_{00}\f$[l][index_mu])
+ * @param w8   Input: Legendre quadrature weights (w8[index_mu])
+ * @param nmu  Input: Number of quadrature points (0<=index_mu<=nmu)
  * @param ple  Input/output: Pointer to the lensing structure
  * @return the error status
  */
@@ -1050,7 +1055,7 @@ int lensing_lensed_cl_tt(
   int imu;
   int index_l;
 
-  /** Integration by Gauss-Legendre quadrature **/
+  /** Integration by Gauss-Legendre quadrature. **/
 #pragma omp parallel for                        \
   private (imu,index_l,cle)                     \
   schedule (static)
@@ -1067,12 +1072,12 @@ int lensing_lensed_cl_tt(
 }
 
 /**
- * This routine adds back the unlensed cl_tt power spectrum
+ * This routine adds back the unlensed \f$ cl_{tt}\f$ power spectrum
  * Used in case of fast (and BB inaccurate) integration of
  * correlation functions.
  *
  * @param ple   Input/output: Pointer to the lensing structure
- * @param cl_tt Input       : Array of unlensed power spectrum
+ * @param cl_tt Input: Array of unlensed power spectrum
  * @return the error status
  */
 
@@ -1092,10 +1097,10 @@ int lensing_addback_cl_tt(
 /**
  * This routine computes the lensed power spectra by Gaussian quadrature
  *
- * @param ksiX Input       : Lensed correlation function (ksiX[index_mu])
- * @param d20  Input       : Wigner d-function (d^l_{20}[l][index_mu])
- * @param w8   Input       : Legendre quadrature weights (w8[index_mu])
- * @param nmu  Input       : Number of quadrature points (0<=index_mu<=nmu)
+ * @param ksiX Input: Lensed correlation function (ksiX[index_mu])
+ * @param d20  Input: Wigner d-function (\f$ d^l_{20}\f$[l][index_mu])
+ * @param w8   Input: Legendre quadrature weights (w8[index_mu])
+ * @param nmu  Input: Number of quadrature points (0<=index_mu<=nmu)
  * @param ple  Input/output: Pointer to the lensing structure
  * @return the error status
  */
@@ -1113,7 +1118,7 @@ int lensing_lensed_cl_te(
   int imu;
   int index_l;
 
-  /** Integration by Gauss-Legendre quadrature **/
+  /** Integration by Gauss-Legendre quadrature. **/
 #pragma omp parallel for                        \
   private (imu,index_l,clte)                    \
   schedule (static)
@@ -1130,12 +1135,12 @@ int lensing_lensed_cl_te(
 }
 
 /**
- * This routine adds back the unlensed cl_te power spectrum
+ * This routine adds back the unlensed \f$ cl_{te}\f$ power spectrum
  * Used in case of fast (and BB inaccurate) integration of
  * correlation functions.
  *
  * @param ple   Input/output: Pointer to the lensing structure
- * @param cl_te Input       : Array of unlensed power spectrum
+ * @param cl_te Input: Array of unlensed power spectrum
  * @return the error status
  */
 
@@ -1155,12 +1160,12 @@ int lensing_addback_cl_te(
 /**
  * This routine computes the lensed power spectra by Gaussian quadrature
  *
- * @param ksip Input       : Lensed correlation function (ksi+[index_mu])
- * @param ksim Input       : Lensed correlation function (ksi-[index_mu])
- * @param d22  Input       : Wigner d-function (d^l_{22}[l][index_mu])
- * @param d2m2 Input       : Wigner d-function (d^l_{2-2}[l][index_mu])
- * @param w8   Input       : Legendre quadrature weights (w8[index_mu])
- * @param nmu  Input       : Number of quadrature points (0<=index_mu<=nmu)
+ * @param ksip Input: Lensed correlation function (ksi+[index_mu])
+ * @param ksim Input: Lensed correlation function (ksi-[index_mu])
+ * @param d22  Input: Wigner d-function (\f$ d^l_{22}\f$[l][index_mu])
+ * @param d2m2 Input: Wigner d-function (\f$ d^l_{2-2}\f$[l][index_mu])
+ * @param w8   Input: Legendre quadrature weights (w8[index_mu])
+ * @param nmu  Input: Number of quadrature points (0<=index_mu<=nmu)
  * @param ple  Input/output: Pointer to the lensing structure
  * @return the error status
  */
@@ -1180,7 +1185,7 @@ int lensing_lensed_cl_ee_bb(
   int imu;
   int index_l;
 
-  /** Integration by Gauss-Legendre quadrature **/
+  /** Integration by Gauss-Legendre quadrature. **/
 #pragma omp parallel for                        \
   private (imu,index_l,clp,clm)                 \
   schedule (static)
@@ -1199,13 +1204,13 @@ int lensing_lensed_cl_ee_bb(
 }
 
 /**
- * This routine adds back the unlensed cl_ee, cl_bb power spectra
+ * This routine adds back the unlensed \f$ cl_{ee}\f$, \f$ cl_{bb}\f$ power spectra
  * Used in case of fast (and BB inaccurate) integration of
  * correlation functions.
  *
  * @param ple   Input/output: Pointer to the lensing structure
- * @param cl_ee Input       : Array of unlensed power spectrum
- * @param cl_bb Input       : Array of unlensed power spectrum
+ * @param cl_ee Input: Array of unlensed power spectrum
+ * @param cl_bb Input: Array of unlensed power spectrum
  * @return the error status
  */
 
@@ -1228,13 +1233,13 @@ int lensing_addback_cl_ee_bb(
 /**
  * This routine computes the d00 term
  *
- * @param mu     Input       : Vector of cos(beta) values
- * @param num_mu Input       : Number of cos(beta) values
- * @param lmax   Input       : maximum multipole
+ * @param mu     Input: Vector of cos(beta) values
+ * @param num_mu Input: Number of cos(beta) values
+ * @param lmax   Input: maximum multipole
  * @param d00    Input/output: Result is stored here
  *
  * Wigner d-functions, computed by recurrence
- * actual recurrence on sqrt((2l+1)/2) d^l_{mm'} for stability
+ * actual recurrence on \f$ \sqrt{(2l+1)/2} d^l_{mm'} \f$ for stability
  * Formulae from Kostelec & Rockmore 2003
  **/
 
@@ -1285,13 +1290,13 @@ int lensing_d00(
 /**
  * This routine computes the d11 term
  *
- * @param mu     Input       : Vector of cos(beta) values
- * @param num_mu Input       : Number of cos(beta) values
- * @param lmax   Input       : maximum multipole
+ * @param mu     Input: Vector of cos(beta) values
+ * @param num_mu Input: Number of cos(beta) values
+ * @param lmax   Input: maximum multipole
  * @param d11    Input/output: Result is stored here
  *
  * Wigner d-functions, computed by recurrence
- * actual recurrence on sqrt((2l+1)/2) d^l_{mm'} for stability
+ * actual recurrence on \f$ \sqrt{(2l+1)/2} d^l_{mm'} \f$ for stability
  * Formulae from Kostelec & Rockmore 2003
  **/
 
@@ -1342,13 +1347,13 @@ int lensing_d11(
 /**
  * This routine computes the d1m1 term
  *
- * @param mu     Input       : Vector of cos(beta) values
- * @param num_mu Input       : Number of cos(beta) values
- * @param lmax   Input       : maximum multipole
+ * @param mu     Input: Vector of cos(beta) values
+ * @param num_mu Input: Number of cos(beta) values
+ * @param lmax   Input: maximum multipole
  * @param d1m1    Input/output: Result is stored here
  *
  * Wigner d-functions, computed by recurrence
- * actual recurrence on sqrt((2l+1)/2) d^l_{mm'} for stability
+ * actual recurrence on \f$ \sqrt{(2l+1)/2} d^l_{mm'} \f$ for stability
  * Formulae from Kostelec & Rockmore 2003
  **/
 
@@ -1399,13 +1404,13 @@ int lensing_d1m1(
 /**
  * This routine computes the d2m2 term
  *
- * @param mu     Input       : Vector of cos(beta) values
- * @param num_mu Input       : Number of cos(beta) values
- * @param lmax   Input       : maximum multipole
- * @param d2m2    Input/output: Result is stored here
+ * @param mu     Input: Vector of cos(beta) values
+ * @param num_mu Input: Number of cos(beta) values
+ * @param lmax   Input: maximum multipole
+ * @param d2m2   Input/output: Result is stored here
  *
  * Wigner d-functions, computed by recurrence
- * actual recurrence on sqrt((2l+1)/2) d^l_{mm'} for stability
+ * actual recurrence on \f$ \sqrt{(2l+1)/2} d^l_{mm'} \f$ for stability
  * Formulae from Kostelec & Rockmore 2003
  **/
 
@@ -1456,13 +1461,13 @@ int lensing_d2m2(
 /**
  * This routine computes the d22 term
  *
- * @param mu     Input       : Vector of cos(beta) values
- * @param num_mu Input       : Number of cos(beta) values
- * @param lmax   Input       : maximum multipole
+ * @param mu     Input: Vector of cos(beta) values
+ * @param num_mu Input: Number of cos(beta) values
+ * @param lmax   Input: maximum multipole
  * @param d22    Input/output: Result is stored here
  *
  * Wigner d-functions, computed by recurrence
- * actual recurrence on sqrt((2l+1)/2) d^l_{mm'} for stability
+ * actual recurrence on \f$ \sqrt{(2l+1)/2} d^l_{mm'} \f$ for stability
  * Formulae from Kostelec & Rockmore 2003
  **/
 
@@ -1513,13 +1518,13 @@ int lensing_d22(
 /**
  * This routine computes the d20 term
  *
- * @param mu     Input       : Vector of cos(beta) values
- * @param num_mu Input       : Number of cos(beta) values
- * @param lmax   Input       : maximum multipole
+ * @param mu     Input: Vector of cos(beta) values
+ * @param num_mu Input: Number of cos(beta) values
+ * @param lmax   Input: maximum multipole
  * @param d20    Input/output: Result is stored here
  *
  * Wigner d-functions, computed by recurrence
- * actual recurrence on sqrt((2l+1)/2) d^l_{mm'} for stability
+ * actual recurrence on \f$ \sqrt{(2l+1)/2} d^l_{mm'} \f$ for stability
  * Formulae from Kostelec & Rockmore 2003
  **/
 
@@ -1568,13 +1573,13 @@ int lensing_d20(
 /**
  * This routine computes the d31 term
  *
- * @param mu     Input       : Vector of cos(beta) values
- * @param num_mu Input       : Number of cos(beta) values
- * @param lmax   Input       : maximum multipole
+ * @param mu     Input: Vector of cos(beta) values
+ * @param num_mu Input: Number of cos(beta) values
+ * @param lmax   Input: maximum multipole
  * @param d31    Input/output: Result is stored here
  *
  * Wigner d-functions, computed by recurrence
- * actual recurrence on sqrt((2l+1)/2) d^l_{mm'} for stability
+ * actual recurrence on \f$ \sqrt{(2l+1)/2} d^l_{mm'} \f$ for stability
  * Formulae from Kostelec & Rockmore 2003
  **/
 
@@ -1626,13 +1631,13 @@ int lensing_d31(
 /**
  * This routine computes the d3m1 term
  *
- * @param mu     Input       : Vector of cos(beta) values
- * @param num_mu Input       : Number of cos(beta) values
- * @param lmax   Input       : maximum multipole
+ * @param mu     Input: Vector of cos(beta) values
+ * @param num_mu Input: Number of cos(beta) values
+ * @param lmax   Input: maximum multipole
  * @param d3m1   Input/output: Result is stored here
  *
  * Wigner d-functions, computed by recurrence
- * actual recurrence on sqrt((2l+1)/2) d^l_{mm'} for stability
+ * actual recurrence on \f$ \sqrt{(2l+1)/2} d^l_{mm'} \f$ for stability
  * Formulae from Kostelec & Rockmore 2003
  **/
 
@@ -1684,13 +1689,13 @@ int lensing_d3m1(
 /**
  * This routine computes the d3m3 term
  *
- * @param mu     Input       : Vector of cos(beta) values
- * @param num_mu Input       : Number of cos(beta) values
- * @param lmax   Input       : maximum multipole
+ * @param mu     Input: Vector of cos(beta) values
+ * @param num_mu Input: Number of cos(beta) values
+ * @param lmax   Input: maximum multipole
  * @param d3m3   Input/output: Result is stored here
  *
  * Wigner d-functions, computed by recurrence
- * actual recurrence on sqrt((2l+1)/2) d^l_{mm'} for stability
+ * actual recurrence on \f$ \sqrt{(2l+1)/2} d^l_{mm'} \f$ for stability
  * Formulae from Kostelec & Rockmore 2003
  **/
 
@@ -1742,13 +1747,13 @@ int lensing_d3m3(
 /**
  * This routine computes the d40 term
  *
- * @param mu     Input       : Vector of cos(beta) values
- * @param num_mu Input       : Number of cos(beta) values
- * @param lmax   Input       : maximum multipole
+ * @param mu     Input: Vector of cos(beta) values
+ * @param num_mu Input: Number of cos(beta) values
+ * @param lmax   Input: maximum multipole
  * @param d40    Input/output: Result is stored here
  *
  * Wigner d-functions, computed by recurrence
- * actual recurrence on sqrt((2l+1)/2) d^l_{mm'} for stability
+ * actual recurrence on \f$ \sqrt{(2l+1)/2} d^l_{mm'} \f$ for stability
  * Formulae from Kostelec & Rockmore 2003
  **/
 
@@ -1799,13 +1804,13 @@ int lensing_d40(
 /**
  * This routine computes the d4m2 term
  *
- * @param mu     Input       : Vector of cos(beta) values
- * @param num_mu Input       : Number of cos(beta) values
- * @param lmax   Input       : maximum multipole
+ * @param mu     Input: Vector of cos(beta) values
+ * @param num_mu Input: Number of cos(beta) values
+ * @param lmax   Input: maximum multipole
  * @param d4m2   Input/output: Result is stored here
  *
  * Wigner d-functions, computed by recurrence
- * actual recurrence on sqrt((2l+1)/2) d^l_{mm'} for stability
+ * actual recurrence on \f$ \sqrt{(2l+1)/2} d^l_{mm'} \f$ for stability
  * Formulae from Kostelec & Rockmore 2003
  **/
 
@@ -1858,13 +1863,13 @@ int lensing_d4m2(
 /**
  * This routine computes the d4m4 term
  *
- * @param mu     Input       : Vector of cos(beta) values
- * @param num_mu Input       : Number of cos(beta) values
- * @param lmax   Input       : maximum multipole
+ * @param mu     Input: Vector of cos(beta) values
+ * @param num_mu Input: Number of cos(beta) values
+ * @param lmax   Input: maximum multipole
  * @param d4m4   Input/output: Result is stored here
  *
  * Wigner d-functions, computed by recurrence
- * actual recurrence on sqrt((2l+1)/2) d^l_{mm'} for stability
+ * actual recurrence on \f$ \sqrt{(2l+1)/2} d^l_{mm'} \f$ for stability
  * Formulae from Kostelec & Rockmore 2003
  **/
 
