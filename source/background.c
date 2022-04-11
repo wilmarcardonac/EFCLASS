@@ -707,8 +707,8 @@ int background_w_fld(                                 /* Aqui es donde se define
       + (-2.+2.*pba->alpha_GO-3.*pba->beta_GO)*Omega_r) - pow(a,1. + 2.*pba->alpha_GO /pba->beta_GO)*(2.*pba->alpha_GO-3.*pba->beta_GO)*(-1.+pba->alpha_GO-2.*pba->beta_GO)*Omega_m
       - pow(a,2.*pba->alpha_GO /pba->beta_GO)*(-2.+2.*pba->alpha_GO-3.*pba->beta_GO)*(pba->alpha_GO-2.*pba->beta_GO)*Omega_r ) ) ;
 
-      if (*w_fld <= -1.){
-        class_stop(pba->error_message,"The value of w_fld can not be less than -1");
+      if ( (*w_fld <= -1.) && (pba->use_ppf==_FALSE_) ){
+        class_stop(pba->error_message,"The value of w_fld can not be less than -1 with: use_ppf = no, change it to: yes.");
       }
 
      } else

@@ -2897,21 +2897,24 @@ int input_read_parameters_species(struct file_content * pfc,
     if (pba->fluid_equation_of_state == GO) { /*Aqui se lee parametros GO*/
       /* Read */
         class_read_double("alpha_GO",pba->alpha_GO);
-        class_read_double("beta_GO",pba->beta_GO);
         class_read_double("cs2_fld",pba->cs2_fld);
         pba->Omega0_lambda = 0.;
 
-        class_call(parser_read_string(pfc,"const_cs2",&string1,&flag1,errmsg),
+        class_call(parser_read_double(pfc,"beta_GO",&param1,&flag1,errmsg),
                    errmsg,
                    errmsg);
+
         if (flag1 == _TRUE_){
-          if(string_begins_with(string1,'y') || string_begins_with(string1,'Y')){
-            pba->const_cs2 = _TRUE_;
-          }
-          else {
-            pba->const_cs2 = _FALSE_;
-          }
+          pba->beta_GO = param1;
+	  /*printf("HI beta_GO = %e\n",pba->beta_GO);
+	    exit(1);*/
+        } else{
+          pba->beta_GO = pba->alpha_GO /2.;
+	  /*printf("Hello beta_GO = %e\n",pba->beta_GO);
+	    exit(1);*/
         }
+
+
       }
   }
 
@@ -5371,7 +5374,6 @@ int input_default_params(struct background *pba,
   /** 9.a.2.3) 'GO' case */
   pba->alpha_GO = 1.; /*Aqui*/
   pba->beta_GO = 0.5;
-  pba->const_cs2 = _FALSE_;
   /** 9.b) Omega scalar field */
   /** 9.b.1) Potential parameters and initial conditions */
   pba->scf_parameters = NULL;
