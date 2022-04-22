@@ -2906,12 +2906,8 @@ int input_read_parameters_species(struct file_content * pfc,
 
         if (flag1 == _TRUE_){
           pba->beta_GO = param1;
-	  /*printf("HI beta_GO = %e\n",pba->beta_GO);
-	    exit(1);*/
         } else{
           pba->beta_GO = pba->alpha_GO /2.;
-	  /*printf("Hello beta_GO = %e\n",pba->beta_GO);
-	    exit(1);*/
         }
 
 

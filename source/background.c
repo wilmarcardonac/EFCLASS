@@ -707,7 +707,7 @@ int background_w_fld(                                 /* Aqui es donde se define
       + (-2.+2.*pba->alpha_GO-3.*pba->beta_GO)*Omega_r) - pow(a,1. + 2.*pba->alpha_GO /pba->beta_GO)*(2.*pba->alpha_GO-3.*pba->beta_GO)*(-1.+pba->alpha_GO-2.*pba->beta_GO)*Omega_m
       - pow(a,2.*pba->alpha_GO /pba->beta_GO)*(-2.+2.*pba->alpha_GO-3.*pba->beta_GO)*(pba->alpha_GO-2.*pba->beta_GO)*Omega_r ) ) ;
 
-      if ( (*w_fld <= -1.) && (pba->use_ppf==_FALSE_) ){
+      if ( (*w_fld <= -1.) && (pba->use_ppf==_FALSE_)){
         class_stop(pba->error_message,"The value of w_fld can not be less than -1 with: use_ppf = no, change it to: yes.");
       }
 
@@ -779,13 +779,6 @@ int background_w_fld(                                 /* Aqui es donde se define
     - pow(a,2.*pba->alpha_GO/pba->beta_GO)*(-2.+2.*pba->alpha_GO-3.*pba->beta_GO)*(pba->alpha_GO-2.*pba->beta_GO)*Omega_r)
     / ( (-1.+pba->alpha_GO -2.*pba->beta_GO)*(-2.+2.*pba->alpha_GO-3.*pba->beta_GO)*(1-Omega_r-Omega_m)) );
 
-    if (pba->const_cs2 == _FALSE_ ){
-      pba->cs2_fld= (2.*(2.-2.*pba->alpha_GO + 3.*pba->beta_GO)*(-2.*pow(a,2.*pba->alpha_GO/pba->beta_GO)*(pba->alpha_GO-2.*pba->beta_GO)*pow(pba->beta_GO,2.)*pba->Omega0_r
-                  + pow(a,4.+(2./pba->beta_GO))*(pba->alpha_GO-1.)*( (-1.+pba->alpha_GO-2.*pba->beta_GO)*(-2.+2.*pba->alpha_GO - 3.*pba->beta_GO + 2.*pba->Omega0_m) + (-2.+2.*pba->alpha_GO - 3.*pba->beta_GO)*pba->Omega0_r ) ) )
-                  /(3.*pba->beta_GO*(3.*pow(a,1.+2.*pba->alpha_GO/pba->beta_GO)*pba->beta_GO*(1.-pba->alpha_GO+2.*pba->beta_GO)*(-2.*pba->alpha_GO+3.*pba->beta_GO)*pba->Omega0_m
-                  + 4.*pow(a,2.*pba->alpha_GO/pba->beta_GO)*pba->beta_GO*(-pba->alpha_GO+2.*pba->beta_GO)*(2.-2.*pba->alpha_GO + 3.*pba->beta_GO)*pba->Omega0_r
-                  - 2.*pow(a,4.+(2./pba->beta_GO))*(pba->alpha_GO-1.)*( (-1.+pba->alpha_GO-2.*pba->beta_GO)*(-2.+2.*pba->alpha_GO - 3.*pba->beta_GO + 2.*pba->Omega0_m) + (-2.+2.*pba->alpha_GO - 3.*pba->beta_GO)*pba->Omega0_r ) ) );
-                }
     break;
   }
 
@@ -2219,10 +2212,10 @@ int background_initial_conditions(
 
     pvecback_integration[pba->index_bi_rho_fld] = rho_fld_today * exp(integral_fld);
 
-    /*class_test(pvecback_integration[pba->index_bi_rho_fld] != pvecback_integration[pba->index_bi_rho_fld],
+    class_test(pvecback_integration[pba->index_bi_rho_fld] != pvecback_integration[pba->index_bi_rho_fld],
                pba->error_message,
                "rho_fld <0, Energy condition violated rho_fld should be strictly positive",
-               pvecback_integration[pba->index_bi_rho_fld]); */
+               pvecback_integration[pba->index_bi_rho_fld]);
   }
 
   /** - Fix initial value of \f$ \phi, \phi' \f$
