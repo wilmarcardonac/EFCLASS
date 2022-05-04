@@ -6567,6 +6567,7 @@ int perturbations_einstein(
   double s2_squared;
   double shear_g = 0.;
   double shear_idr = 0.;
+  double V_fR,om0;
 
   /** - define wavenumber and scale factor related quantities */
 
@@ -6575,7 +6576,8 @@ int perturbations_einstein(
   a2 = a * a;
   a_prime_over_a = ppw->pvecback[pba->index_bg_H]*a;
   s2_squared = 1.-3.*pba->K/k2;
-
+  om0 = pba->Omega0_cdm + pba->Omega0_b;
+  
   /** - sum up perturbations from all species */
   class_call(perturbations_total_stress_energy(ppr,pba,pth,ppt,index_md,k,y,ppw),
              ppt->error_message,
@@ -6605,8 +6607,18 @@ int perturbations_einstein(
       ppw->pvecmetric[ppw->index_mt_psi] = y[ppw->pv->index_pt_phi] - 4.5 * (a2/k2) * ppw->rho_plus_p_shear;
 
       /* equation for phi' */
-      ppw->pvecmetric[ppw->index_mt_phi_prime] = -a_prime_over_a * ppw->pvecmetric[ppw->index_mt_psi] + 1.5 * (a2/k2) * ppw->rho_plus_p_theta;
-
+      if (pba->has_svt == _TRUE_ )
+	{
+	  if ( pba->j0_des != 0. )
+	    {
+	      V_fR = ((pba->H0)*pba->j0_des*(5.*om0 + 2.*pow(a,3)*pba->Omega0_lambda))/2./sqrt(a*(om0+pow(a,3)*pba->Omega0_lambda))/(-pba->j0_des + 6.*sqrt(2.)*om0*sqrt(om0/pow(a,3) + pba->Omega0_lambda));
+	    }
+	  ppw->pvecmetric[ppw->index_mt_phi_prime] = -a_prime_over_a * ppw->pvecmetric[ppw->index_mt_psi] + 1.5 * (a2/k2) * ppw->rho_plus_p_theta + 1.5*(a2/k2/pow(2997.92458/pba->h,2))*V_fR;
+	}
+      else
+	{
+	  ppw->pvecmetric[ppw->index_mt_phi_prime] = -a_prime_over_a * ppw->pvecmetric[ppw->index_mt_psi] + 1.5 * (a2/k2) * ppw->rho_plus_p_theta;
+	}
       /* eventually, infer radiation streaming approximation for
          gamma and ur (this is exactly the right place to do it
          because the result depends on h_prime) */

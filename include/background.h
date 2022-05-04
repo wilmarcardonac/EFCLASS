@@ -126,6 +126,9 @@ struct background
   double varconst_me; /**< electron mass for varying fundamental constants */
   enum varconst_dependence varconst_dep; /**< dependence of the varying fundamental constants as a function of time */
   double varconst_transition_redshift; /**< redshift of transition between varied fundamental constants and normal fundamental constants in the 'varconst_instant' case*/
+  double j0_des; /**< Effective Dark Energy parameter for SVT designer model w = -1 */
+  double log10j0_des; /**< log10 PARAMETER FOR SVT DESIGNER MODEL w = -1*/
+
 
   //@}
 
@@ -295,7 +298,8 @@ struct background
   short has_idr;       /**< presence of interacting dark radiation? */
   short has_curvature; /**< presence of global spatial curvature? */
   short has_varconst;  /**< presence of varying fundamental constants? */
-
+  short has_svt;       /**< presence of SVT model as an effective fluid */
+  
   //@}
 
 

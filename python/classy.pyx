@@ -1393,6 +1393,9 @@ cdef class Class:
     def Omega_Lambda(self):
         return self.ba.Omega0_lambda
 
+    def log10j0_des(self):
+        return self.ba.log10j0_des
+
     def Omega_g(self):
         return self.ba.Omega0_g
 

@@ -531,9 +531,21 @@ int background_functions(
 
   /* Lambda */
   if (pba->has_lambda == _TRUE_) {
-    pvecback[pba->index_bg_rho_lambda] = pba->Omega0_lambda * pow(pba->H0,2);
-    rho_tot += pvecback[pba->index_bg_rho_lambda];
-    p_tot -= pvecback[pba->index_bg_rho_lambda];
+    if (pba->has_svt == _TRUE_)
+      {
+	if ( pba->j0_des != 0. )
+	  {
+	    pvecback[pba->index_bg_rho_lambda] = pba->Omega0_lambda * pow(pba->H0,2);
+	    rho_tot += pvecback[pba->index_bg_rho_lambda];
+	    p_tot -= pvecback[pba->index_bg_rho_lambda];
+	  }
+      }
+    else
+      {
+	pvecback[pba->index_bg_rho_lambda] = pba->Omega0_lambda * pow(pba->H0,2);
+	rho_tot += pvecback[pba->index_bg_rho_lambda];
+	p_tot -= pvecback[pba->index_bg_rho_lambda];
+      }
   }
 
   /* fluid with w(a) and constant cs2 */
@@ -983,7 +995,8 @@ int background_indices(
   pba->has_idr = _FALSE_;
   pba->has_curvature = _FALSE_;
   pba->has_varconst  = _FALSE_;
-
+  pba->has_svt = _FALSE_;
+  
   if (pba->Omega0_cdm != 0.)
     pba->has_cdm = _TRUE_;
 
@@ -1002,8 +1015,14 @@ int background_indices(
   if (pba->Omega0_scf != 0.)
     pba->has_scf = _TRUE_;
 
-  if (pba->Omega0_lambda != 0.)
+  if (pba->Omega0_lambda != 0.) {
     pba->has_lambda = _TRUE_;
+    if ( pba->log10j0_des != -1e2 )
+      {
+	pba->j0_des = pow(10.,pba->log10j0_des);
+	pba->has_svt = _TRUE_;
+      }
+  }
 
   if (pba->Omega0_fld != 0.)
     pba->has_fld = _TRUE_;

@@ -3169,14 +3169,17 @@ int input_read_parameters_species(struct file_content * pfc,
   /* Step 1 */
   if (flag1 == _TRUE_){
     pba->Omega0_lambda = param1;
+    class_read_double("log10j0_des",pba->log10j0_des);
     Omega_tot += pba->Omega0_lambda;
   }
   if (flag2 == _TRUE_){
     pba->Omega0_fld = param2;
+    class_read_double("log10j0_des",pba->log10j0_des);
     Omega_tot += pba->Omega0_fld;
   }
   if ((flag3 == _TRUE_) && (param3 >= 0.)){
     pba->Omega0_scf = param3;
+    class_read_double("log10j0_des",pba->log10j0_des);
     Omega_tot += pba->Omega0_scf;
   }
   /* Step 2 */
@@ -5791,7 +5794,10 @@ int input_default_params(struct background *pba,
   pba->scf_tuning_index = 0;
   /** 9.b.4) Shooting parameter */
   pba->shooting_failed = _FALSE_;
-
+  /** SVT designer model w=-1*/
+  pba->j0_des = 0.;
+  pba->log10j0_des = -1e2;
+  
   /**
    * Deafult to input_read_parameters_heating
    */

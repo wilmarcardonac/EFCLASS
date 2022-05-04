@@ -109,6 +109,9 @@ cdef extern from "class.h":
         double H_eq
         double z_eq
         double tau_eq
+        short has_svt
+        double j0_des
+        double log10j0_des
 
     cdef struct thermodynamics:
         ErrorMsg error_message
