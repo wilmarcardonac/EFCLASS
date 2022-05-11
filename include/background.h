@@ -143,6 +143,7 @@ struct background
 
   double alpha_GO; /* ----------------> Aqui se colocarón los nuevos parametros alpha y beta para GO <---------------------------------------*/
   double beta_GO;
+  double log10_cs2;
   /* buscar Omega0_ur*/
 
   //@}
