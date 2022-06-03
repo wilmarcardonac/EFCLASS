@@ -6611,9 +6611,9 @@ int perturbations_einstein(
 	{
 	  if ( pba->j0_des != 0. )
 	    {
-	      V_fR = ((pba->H0)*pba->j0_des*(5.*om0 + 2.*pow(a,3)*pba->Omega0_lambda))/2./sqrt(a*(om0+pow(a,3)*pba->Omega0_lambda))/(-pba->j0_des + 6.*sqrt(2.)*om0*sqrt(om0/pow(a,3) + pba->Omega0_lambda));
+	      V_fR = -16.*sqrt(2)*a*pba->H0*pba->j0_des*( om0*(20.*a*k2/pow(pba->H0,2) + 1161.*om0 ) + pow(a,3)*( 8.*a*k2/pow(pba->H0,2) + 1791.*om0  )*pba->Omega0_lambda + 576.*pow(a,6)*pow(pba->Omega0_lambda,2) )*(pba->Omega0_b*y[ppw->pv->index_pt_delta_b] + pba->Omega0_cdm*y[ppw->pv->index_pt_delta_cdm])/3./om0/(29.*om0 + 20*pow(a,3)*pba->Omega0_lambda)/(8.*a*k2/pow(pba->H0,2) + 273.*om0 + 336.*pow(a,3)*pba->Omega0_lambda) ;  
 	    }
-	  ppw->pvecmetric[ppw->index_mt_phi_prime] = -a_prime_over_a * ppw->pvecmetric[ppw->index_mt_psi] + 1.5 * (a2/k2) * ppw->rho_plus_p_theta + 1.5*(a2/k2/pow(2997.92458/pba->h,2))*V_fR;
+	  ppw->pvecmetric[ppw->index_mt_phi_prime] = -a_prime_over_a * ppw->pvecmetric[ppw->index_mt_psi] + 1.5 * (a2/k2) * ppw->rho_plus_p_theta + 1.5*(a2*pow(pba->H0,2)/k2)*V_fR;
 	}
       else
 	{
