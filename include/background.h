@@ -124,10 +124,17 @@ struct background
   double phi_prime_ini_scf;/**< \f$ d\phi(t_0)/d\tau \f$: scalar field initial derivative wrt conformal time */
   int scf_parameters_size; /**< size of scf_parameters */
 
+
   double * vf_parameters;  /* Parameters of the vector field model */
-  double phi_ini_vf;       /**< \f$ \vphi(t_0) \f$: vector field initial value */
+  double vf_parameters_1;
+  double vf_parameters_2;
+  double vf_parameters_3;
+  double vf_parameters_4;
+  double vf_parameters_5;
   int vf_parameters_size;  /**< size of vf_parameters */
   int vf_tuning_index;    /**< index in vf_parameters used for tuning */
+  short num_sol_cdm_vf;   /**< whether the diferential equation of cdm will be solve*/
+
 
   double varconst_alpha; /**< finestructure constant for varying fundamental constants */
   double varconst_me; /**< electron mass for varying fundamental constants */
@@ -194,12 +201,12 @@ struct background
   int index_bg_p_prime_scf;         /**< scalar field pressure */
 
   int index_bg_phi_vf;       /**< vector field value */
-  int index_bg_rQ_vf;        /**<  coupling parameter */
+  int index_bg_rQ_vf;        /**< coupling parameter */
   int index_bg_rho_vf;       /**< vector field energy density */
   int index_bg_p_vf;         /**< vector field pressure */
   int index_bg_p_prime_vf;   /**< vector field pressure derivative */
-  int index_bg_rho_cdm_vf;       /**< coupled dark matter density.  */
-
+  int index_bg_rho_cdm_vf;       /**< We use that when we solve cdm numerically  */
+  
   int index_bg_rho_ncdm1;     /**< density of first ncdm species (others contiguous) */
   int index_bg_p_ncdm1;       /**< pressure of first ncdm species (others contiguous) */
   int index_bg_pseudo_p_ncdm1;/**< another statistical momentum useful in ncdma approximation */
@@ -276,6 +283,7 @@ struct background
   int index_bi_phi_scf;       /**< {B} scalar field value */
   int index_bi_phi_prime_scf; /**< {B} scalar field derivative wrt conformal time */
   int index_bi_rho_vf;        /**< {B} vector field value */
+  int index_bi_rho_cdm_vf;    /**< {B} numerical solution for cdm */
 
   int index_bi_time;    /**< {C} proper (cosmological) time in Mpc */
   int index_bi_rs;      /**< {C} sound horizon */
@@ -304,6 +312,7 @@ struct background
   short has_dr;        /**< presence of relativistic decay radiation? */
   short has_scf;       /**< presence of a scalar field? */
   short has_vf;        /**< presence of a vector field? */
+  short has_cdm_vf;    /**< numerical solution for cdm */
   short has_ncdm;      /**< presence of non-cold dark matter? */
   short has_lambda;    /**< presence of cosmological constant? */
   short has_fld;       /**< presence of fluid with constant w and cs2? */

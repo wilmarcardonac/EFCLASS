@@ -165,6 +165,11 @@ if TEST_LEVEL > 2:
         'scf_parameters': '10, 0, 0, 0'}],
         'normal')
 
+    CLASS_INPUT['vector_field'] = (
+        [{'Omega_vf': -1.0,
+        'vf_parameters': '1.0, -1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 10.0'}],
+        'normal')
+
     CLASS_INPUT['Inflation'] = (
         [{'P_k_ini type': 'inflation_V'},
         {'P_k_ini type': 'inflation_H'}],

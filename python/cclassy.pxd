@@ -109,6 +109,10 @@ cdef extern from "class.h":
         double H_eq
         double z_eq
         double tau_eq
+        double Omega0_vf   
+        double * vf_parameters
+        int vf_tuning_index
+        short num_sol_cdm_vf         
 
     cdef struct thermodynamics:
         ErrorMsg error_message
@@ -194,6 +198,7 @@ cdef extern from "class.h":
         short has_source_delta_dcdm
         short has_source_delta_fld
         short has_source_delta_scf
+        short has_source_delta_vf
         short has_source_delta_dr
         short has_source_delta_ur
         short has_source_delta_ncdm
@@ -208,6 +213,7 @@ cdef extern from "class.h":
         short has_source_theta_dcdm
         short has_source_theta_fld
         short has_source_theta_scf
+        short has_source_theta_vf
         short has_source_theta_dr
         short has_source_theta_ur
         short has_source_theta_ncdm
@@ -236,6 +242,7 @@ cdef extern from "class.h":
         int index_tp_delta_dcdm
         int index_tp_delta_fld
         int index_tp_delta_scf
+        int index_tp_delta_vf
         int index_tp_delta_dr
         int index_tp_delta_ur
         int index_tp_delta_idr
@@ -250,6 +257,7 @@ cdef extern from "class.h":
         int index_tp_theta_dcdm
         int index_tp_theta_fld
         int index_tp_theta_scf
+        int index_tp_theta_vf
         int index_tp_theta_ur
         int index_tp_theta_idr
         int index_tp_theta_idm

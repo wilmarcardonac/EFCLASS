@@ -40,7 +40,7 @@ OPTFLAG = -O3
 # your openmp flag (comment for compiling without openmp)
 #OMPFLAG   = -fopenmp
 #OMPFLAG   = -mp -mp=nonuma -mp=allcores -g
-OMPFLAG   = -openmp
+#OMPFLAG   = -openmp
 
 # all other compilation flags
 CCFLAG = -g -fPIC

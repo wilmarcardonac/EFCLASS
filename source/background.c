@@ -402,12 +402,19 @@ int background_functions(
   double phi, phi_prime;
 
   /* vector field quantities */  
-  double rho_vf, phi_vf, eps_vf, h_vf, eps_dot_vf, w_vf, w_dot_vf;
+  double rho_vf, phi_vf;
+  /* Equation of state of dark energy */ 
+  double w_vf, w_dot_vf;
+  /* Coupling function */ 
+  double f_vf;
+  /* cdm numerically */
+  double rho_cdm_vf;
   /* Auxiliar vector field quantities */
-  double rho_cdm_vf, rho_dot_cdm_vf, f_vf, rQ_vf, rQ_dot_vf;
+  double rQ_vf, rQ_dot_vf, eps_vf, h_vf, eps_dot_vf;
+  /* Omega_{i} and its derivative */ 
+  double Or_vf, Om_vf, O_vf, Or_dot_vf, O_dot_vf;
   /* Vector field parameters*/
-  double s_vf, s1_vf, b2_vf, p_vf, q_vf, QQ_vf, P2_vf, P3_vf, phi0_vf; 
-  double Or_vf, Om_vf, Oc_vf, O_vf, Or_dot_vf, O_dot_vf;
+  double s_vf, s1_vf, b2_vf, p_vf, q_vf, QQ_vf, p2_vf, p3_vf, phi0_vf, beta_vf;
 
 
   /* Since we only know a_prime_over_a after we have rho_tot,
@@ -447,7 +454,7 @@ int background_functions(
   rho_m += pvecback[pba->index_bg_rho_b];
 
   /* cdm */
-  if (pba->has_cdm == _TRUE_) {
+  if (pba->has_cdm == _TRUE_ && pba->has_vf == _FALSE_) {
     pvecback[pba->index_bg_rho_cdm] = pba->Omega0_cdm * pow(pba->H0,2) / pow(a,3);
     rho_tot += pvecback[pba->index_bg_rho_cdm];
     p_tot += 0.;
@@ -501,46 +508,72 @@ int background_functions(
     //printf(" a= %e, Omega_scf = %f, \n ",a, pvecback[pba->index_bg_rho_scf]/rho_tot );
   }
 
-  /* Vector field parameters */
+  /* Vector field */
   if (pba->has_vf == _TRUE_){
 
-    s_vf  = pba->vf_parameters[0];             //s
-    b2_vf = pba->vf_parameters[1];             //b2 
-    P2_vf = pba->vf_parameters[2];
-//    q_vf  = pba->vf_parameters[3];            //q
-    QQ_vf  = pba->vf_parameters[4];             //Q
-    p_vf  = P2_vf/s_vf;
-    phi0_vf = sqrt(2.0)*pow(pba->H0,1.0/P2_vf)*pow(3.0*pba->Omega0_vf,1.0/2.0/P2_vf);  // value of phi_vf today
-    P3_vf = (p_vf-1.+2.*P2_vf)/2.;
-    q_vf  = 2.*P3_vf;                      //case q = 2P3    
-    s1_vf = (2.*q_vf-2.*P3_vf-1.)/p_vf;
-  }  
+   /* Vector field parameters*/
 
-  /* Vector field' density */
-  if (pba->has_vf == _TRUE_) {
+    s_vf  = pba->vf_parameters_1;             //s
+    p2_vf = pba->vf_parameters_2;             //p2
+    QQ_vf = pba->vf_parameters_3;             //Q
+    p_vf  = p2_vf/s_vf;
+    phi0_vf = sqrt(2.0)*pow(pba->H0,1.0/p2_vf)*pow(3.0*pba->Omega0_vf,1.0/2.0/p2_vf);  // value of phi_vf (vector field) today
+    p3_vf = (p_vf-1.+2.*p2_vf)/2.;            //p3
+  //Since the units of rho_vf are set automatically by setting the initial conditions we only choose the sign of b2, it is negative because rho_vf has to be positive.  
+    b2_vf = -1.;                              //b2 
+
+  /* According to arXiv:1907.12216v2 we chose q_vf = 2p3_vf. */
+  /* However, there is a free space in  pba->vf_parameters_4 if you want to select another value for q_vf*/
+
+//    q_vf = 2.*p3_vf;                      //q = 2p3
+    q_vf  = pba->vf_parameters_4;          // Do not comment if you want to give a values for q in a .ini file          
+
+
+    s1_vf = (2.*q_vf-2.*p3_vf-1.)/p_vf;    //s1
+    beta_vf = pba->vf_parameters_5;        // beta = 1 (case arXiv:1907.12216v2), beta = 0 (case arXiv:2207.13682v1)
+
+
+  /* Vector field's density */
 
     rho_vf = pvecback_B[pba->index_bi_rho_vf]; //Short notation    
     pvecback[pba->index_bg_rho_vf] = rho_vf; // density energy of the vector field.  
-    phi_vf = sqrt(2.)*pow(-3.*rho_vf/b2_vf,1./2./P2_vf);
-    pvecback[pba->index_bg_phi_vf] = phi_vf; // value of the vector field vphi
+    phi_vf = sqrt(2.)*pow(-3.*rho_vf/b2_vf,1./2./p2_vf);  // vector field A_{\mu} = (\phi_vf,0,0,0)
+    pvecback[pba->index_bg_phi_vf] = phi_vf; // value of the vector field phi_vf
     rho_tot += pvecback[pba->index_bg_rho_vf]; 
-  } 
+
 
   /* Interaction between vector field and cold dark matter */
-
-  if (pba->has_vf == _TRUE_) {
-
     f_vf = pow(phi_vf,2.*q_vf)/pow(2.,q_vf)/pow(phi0_vf,2.*q_vf);
-    rho_cdm_vf = QQ_vf*f_vf*pvecback[pba->index_bg_rho_cdm];
-    rQ_vf = -q_vf*rho_cdm_vf/P2_vf/pvecback[pba->index_bg_rho_vf];
-    rho_tot += rho_cdm_vf;
-    p_tot += 0.;
-    pvecback[pba->index_bg_rQ_vf] = rQ_vf;  
-    pvecback[pba->index_bg_rho_cdm_vf] = rho_cdm_vf;   
-    rho_m += rho_cdm_vf;    
 
-  }  
 
+  /*  cdm */
+    /* If you want to write cdm as \rho_{cdm} \proppto (\beta + Qf(X))a^{-3} */
+    if (pba->has_cdm_vf == _FALSE_){
+      pvecback[pba->index_bg_rho_cdm] = (beta_vf + QQ_vf*f_vf)*pba->Omega0_cdm * pow(pba->H0,2) / pow(a,3);
+      rho_tot += pvecback[pba->index_bg_rho_cdm];
+      p_tot += 0.;
+      rho_m += pvecback[pba->index_bg_rho_cdm];
+    } /* If you want to solve a differential equation for cdm */
+    else{ 
+      pvecback[pba->index_bg_rho_cdm] = pvecback_B[pba->index_bi_rho_cdm_vf];      
+      rho_tot += pvecback[pba->index_bg_rho_cdm];
+      p_tot += 0.;
+      rho_m += pvecback[pba->index_bg_rho_cdm];
+    }
+
+  /* Auxiliar variables */
+    if (pba->has_cdm_vf == _FALSE_){
+
+      /* r_{Q} = \frac{Qf_{,X}a^{-3}}{G_{2,X}} */
+      rQ_vf = -q_vf*QQ_vf*f_vf*pba->Omega0_cdm * pow(pba->H0,2)/p2_vf/pow(a,3)/pvecback[pba->index_bg_rho_vf];
+      pvecback[pba->index_bg_rQ_vf] = rQ_vf;  
+    }     /* If cdm is solved in a numerical way we must re-define r_{Q} according to the next equation */
+    else{ 
+      rQ_vf = -q_vf*QQ_vf*f_vf*pvecback[pba->index_bg_rho_cdm]/p2_vf/pvecback[pba->index_bg_rho_vf]/(beta_vf + QQ_vf*f_vf);
+      pvecback[pba->index_bg_rQ_vf] = rQ_vf;  
+    }
+
+  } 
 
 
   /* ncdm */
@@ -630,7 +663,7 @@ int background_functions(
       only place where the Friedmann equation is assumed. Remember
       that densities are all expressed in units of \f$ [3c^2/8\pi G] \f$, ie
       \f$ \rho_{class} = [8 \pi G \rho_{physical} / 3 c^2]\f$ */
-  H = sqrt(rho_tot-pba->K/a/a); /* vf: Short notations for use in the vector field*/
+  H = sqrt(rho_tot-pba->K/a/a); /* vf: Short notations for use in the following equations*/
   pvecback[pba->index_bg_H] = sqrt(rho_tot-pba->K/a/a);
 
 /** Pressure of the vector field. */
@@ -638,16 +671,17 @@ int background_functions(
 
   if (pba->has_vf == _TRUE_){
 
-    Or_vf = rho_r/H/H;
-    Om_vf = rho_m/H/H;
-//    Oc_vf = rho_cdm_vf/H/H;
-    O_vf  = 1.-Or_vf-Om_vf; 
-//    O_vf = rho_vf/H/H;
+    Or_vf = rho_r/H/H;  // Omega_{r}
+    Om_vf = rho_m/H/H;  // Omega_{m}
+    O_vf  = 1.-Or_vf-Om_vf; //Omega_{DE} 
 
+   /* Auxiliary variable named \epsilon_{\phi} = \frac{\rho_{DE}'}{aH\rho_{DE}} */ 
     eps_vf = s_vf*(3.*(1.+rQ_vf)+(1.-rQ_vf)*(Or_vf-3.*O_vf))/(1.+s1_vf*rQ_vf+O_vf*pow(1.-rQ_vf,2.)*s_vf); 
 
+    /* Dark energy equation of state */
     w_vf = -1. + eps_vf*(rQ_vf-1.)/3.;
 
+   /* Dark energy pressure. P_vf = w_vf \rho_vf */
     pvecback[pba->index_bg_p_vf] = w_vf*pvecback[pba->index_bg_rho_vf];
     p_tot += pvecback[pba->index_bg_p_vf];
     dp_dloga += 0.0; 
@@ -675,25 +709,34 @@ int background_functions(
 
 
 /*  Add P_vf_prime here */
-/* P'_{vf} = w_{vf}*\rho'_{vf} + w_{vf}'*\rho_{vf}/3*/
+/* We need to add P'_{DE}. Then, we computed w_{vf}' and rho_vf' and P'_vf will given by */
+/* P'_{vf} = w_{vf}*\rho'_{vf} + w_{vf}'*\rho_{vf}*/
 
   if (pba->has_vf == _TRUE_) {
 
+ /* We defined A_vf to simplify the notation */
     double A_vf;
     A_vf = (1.+s1_vf*rQ_vf+O_vf*pow(rQ_vf-1.,2.)*s_vf);
 
-    rQ_dot_vf = (eps_vf*(q_vf-P2_vf)/P2_vf-3.)*H*rQ_vf;          //r_{Q}'
+ /*  That is the derivative (with respect to the cosmic time) of the auxiliary function r_{Q}  */ 
+    rQ_dot_vf = (eps_vf*(q_vf-p2_vf)/p2_vf-3.)*H*rQ_vf;          //  \dot{r_{Q}}
 
-    h_vf = pvecback[pba->index_bg_H_prime]/a/H/H; 
+ /*  We used a short notations to write the derivative of the Hubble parameter. */
+ /*h_vf = H'/aH^{2} = \dot{H}/H^{2} is a dimensionless and auxiliary variable. */   
+    h_vf = pvecback[pba->index_bg_H_prime]/a/H/H;  
 
-    Or_dot_vf = -2.*Or_vf*H*(2.+h_vf);
-    O_dot_vf  = O_vf*H*(eps_vf-2.*h_vf);
+ /* \dot{\Omega_{i}} */
+    Or_dot_vf = -2.*Or_vf*H*(2.+h_vf);      // \dot{\Omega_{r}}
+    O_dot_vf  = O_vf*H*(eps_vf-2.*h_vf);    // \dot{\Omega_{vf}}
 
+    /* derivative of the auxiliar variable \epsilon_{\phi} */ 
     eps_dot_vf  = s_vf*(rQ_dot_vf*(3.-Or_vf+3.*O_vf)+(1.-rQ_vf)*(Or_dot_vf-3.*O_dot_vf))/A_vf;
-    eps_dot_vf += -eps_vf*(rQ_dot_vf*(s1_vf+2.*O_vf*(rQ_vf-1.))+O_dot_vf*pow(rQ_vf-1.,2.))/A_vf;
+    eps_dot_vf += -eps_vf*(rQ_dot_vf*(s1_vf+2.*s_vf*O_vf*(rQ_vf-1.))+O_dot_vf*s_vf*pow(rQ_vf-1.,2.))/A_vf;   //\dot{\epsilon_{\phi}}
 
+    /* Derivative of the dark energy equation of states */
     w_dot_vf = (eps_dot_vf*(rQ_vf-1.) + rQ_dot_vf*eps_vf)/3.;
 
+    /* P_{DE}' */ 
     pvecback[pba->index_bg_p_prime_vf] = (w_dot_vf + H*w_vf*eps_vf)*a*pvecback[pba->index_bg_rho_vf];
     pvecback[pba->index_bg_p_tot_prime] += pvecback[pba->index_bg_p_prime_vf];   
   }  
@@ -1188,7 +1231,6 @@ int background_indices(
   class_define_index(pba->index_bg_p_vf,pba->has_vf,index_bg,1);
   class_define_index(pba->index_bg_p_prime_vf,pba->has_vf,index_bg,1);
   class_define_index(pba->index_bg_rQ_vf,pba->has_vf,index_bg,1);
-  class_define_index(pba->index_bg_rho_cdm_vf,pba->has_vf,index_bg,1);  
 
 
   /* - index for Lambda */
@@ -1289,6 +1331,8 @@ int background_indices(
 
   /* -> vector field wrt conformal time (Zuma) */
   class_define_index(pba->index_bi_rho_vf,pba->has_vf,index_bi,1);
+  class_define_index(pba->index_bi_rho_cdm_vf,pba->has_cdm_vf,index_bi,1);    
+
 
   /* End of {B} variables */
   pba->bi_B_size = index_bi;
@@ -2214,13 +2258,22 @@ int background_solve(
       printf("    Vector field details:\n");
       printf("     -> Omega_vf = %g, wished %g\n",
              pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_rho_vf]/pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_rho_crit], pba->Omega0_vf);
-      printf(" -> Vector field parameters: [s, b2, P2, q, Q, Z_ini, Q_ini, rho_vf_ini] = \n");
+//      printf(" -> Vector field parameters: [s, p2, beta, Q, q] = \n");
+      printf("s  -> %.e \n",pba->vf_parameters_1);
+      printf("p2 -> %.e \n",pba->vf_parameters_2);
+      printf("Q  -> %.e \n",pba->vf_parameters_3);
+      printf("q  -> %.e \n",pba->vf_parameters_4);
+      printf("beta -> %.e \n",pba->vf_parameters_5);
+      printf(" -> Vector field initial conditions: [Z_ini, Q_ini, rho_vf_ini] = \n");
       printf("                    [");
       for (index_vf=0; index_vf<pba->vf_parameters_size-1; index_vf++) {
         printf("%.e, ",pba->vf_parameters[index_vf]);
       }
-     printf("%.e]\n",pow(10.0,-pba->vf_parameters[7])*pow(ppr->a_ini_over_a_today_default,4.*pba->vf_parameters[0]));
+      printf("%.e]\n",pow(10.0,-pba->vf_parameters[pba->vf_parameters_size-1])*pow(ppr->a_ini_over_a_today_default,4.*pba->vf_parameters[0]));
     } 
+    if (pba->has_cdm_vf == _TRUE_) {
+      printf(" ->Computing CDM numerically \n");
+      }
 
   }
 
@@ -2430,13 +2483,25 @@ int background_initial_conditions(
    // - Fix initial value of \f$ \rho_{DE} \f$
   
  if (pba->has_vf == _TRUE_) {        
-    pvecback_integration[pba->index_bi_rho_vf] = pow(10.0,-pba->vf_parameters[7])*pow(a,4.*pba->vf_parameters[0]); 
+    pvecback_integration[pba->index_bi_rho_vf] = pow(10.0,-pba->vf_parameters[pba->vf_parameters_size-1])*pow(a,4.*pba->vf_parameters_1); 
 
     class_test(!isfinite(pvecback_integration[pba->index_bi_rho_vf]) ||
                !isfinite(pvecback_integration[pba->index_bi_rho_vf]),
                pba->error_message,
                "initial rho_DE_ini = %e -> check initial conditions",
                pvecback_integration[pba->index_bi_rho_vf]); 
+  } 
+
+   // - Fix initial value of \f$ \rho_{cdm} \f$
+  
+ if (pba->has_cdm_vf == _TRUE_) {        
+    pvecback_integration[pba->index_bi_rho_cdm_vf] = pba->Omega0_cdm * pow(pba->H0,2) / pow(a,3);
+
+    class_test(!isfinite(pvecback_integration[pba->index_bi_rho_cdm_vf]) ||
+               !isfinite(pvecback_integration[pba->index_bi_rho_cdm_vf]),
+               pba->error_message,
+               "initial rho_cdm_ini = %e -> check initial conditions",
+               pvecback_integration[pba->index_bi_rho_cdm_vf]); 
   } 
 
 
@@ -2621,7 +2686,6 @@ int background_output_titles(
   class_store_columntitle(titles,"(.)p_prime_vf",pba->has_vf);
   class_store_columntitle(titles,"phi_vf",pba->has_vf);
   class_store_columntitle(titles,"rQ_vf",pba->has_vf);
-  class_store_columntitle(titles,"(.)rho_cdm_vf",pba->has_vf);  
 
 
   class_store_columntitle(titles,"(.)rho_tot",_TRUE_);
@@ -2702,7 +2766,6 @@ int background_output_data(
     class_store_double(dataptr,pvecback[pba->index_bg_p_prime_vf],pba->has_vf,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_phi_vf],pba->has_vf,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_rQ_vf],pba->has_vf,storeidx); 
-    class_store_double(dataptr,pvecback[pba->index_bg_rho_cdm_vf],pba->has_vf,storeidx);      
 
     class_store_double(dataptr,pvecback[pba->index_bg_rho_tot],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_p_tot],_TRUE_,storeidx);
@@ -2761,9 +2824,10 @@ int background_derivs(
   struct background_parameters_and_workspace * pbpaw;
   struct background * pba;
   double * pvecback, a, H, rho_M, rho_R; //vf
+ /*  We need to define again some of the vector field variables to write the equation of motion for \rho_{DE} */ 
   double phi_vf, rho_vf, eps_vf;
   double rQ_vf, rho_cdm_vf, f_vf;
-  double s_vf, s1_vf, p_vf, P2_vf, P3_vf, q_vf, QQ_vf, phi0_vf, b2_vf;
+  double s_vf, s1_vf, p_vf, p2_vf, p3_vf, q_vf, QQ_vf, phi0_vf, b2_vf, beta_vf;
   double Or_vf, Om_vf, Oc_vf, O_vf, Or_dot_vf, O_dot_vf;
 
   pbpaw = parameters_and_workspace;
@@ -2793,6 +2857,70 @@ int background_derivs(
 
   /** - calculate detivative of sound horizon \f$ drs/dloga = drs/dtau * dtau/dloga = c_s/aH \f$*/
   dy[pba->index_bi_rs] = 1./a/H/sqrt(3.*(1.+3.*pvecback[pba->index_bg_rho_b]/4./pvecback[pba->index_bg_rho_g]))*sqrt(1.-pba->K*y[pba->index_bi_rs]*y[pba->index_bi_rs]); // TBC: curvature correction
+
+
+
+  /**   Dark energy  */
+
+    /** - Compute the vector field energy density: \f$ \rho_{vf}'=\rho_{vf}\epsilon_{\phi} \f$
+        written as \f$ d\rho_{vf}/dlna = rho_{vf}' \f$  */
+
+  if (pba->has_vf == _TRUE_) { 
+
+
+    s_vf   = pba->vf_parameters_1;             //s
+    b2_vf  = -1.;                              //b2    
+    p2_vf  = pba->vf_parameters_2;             //p
+    QQ_vf  = pba->vf_parameters_3;             //Q
+    p_vf  = p2_vf/s_vf;
+    phi0_vf = sqrt(2.0)*pow(pba->H0,1.0/p2_vf)*pow(3.0*pba->Omega0_vf,1.0/2.0/p2_vf);
+    p3_vf = (p_vf-1.+2.*p2_vf)/2.;
+
+  /* According to arXiv:1907.12216v2 we chose q_vf = 2p3_vf. */
+  /* However, there is a free space in  pba->vf_parameters_4 if you want to select another value for q_vf*/
+
+//    q_vf = 2.*p3_vf;                       //q
+    q_vf  =  pba->vf_parameters_4;           // Do not comment if you want to give values for q        
+    s1_vf = (2.*q_vf-2.*p3_vf-1.)/p_vf;
+    beta_vf = pba->vf_parameters_5;
+
+    rho_vf = y[pba->index_bi_rho_vf];
+    phi_vf = sqrt(2.)*pow(-3.*rho_vf/b2_vf,1./2./p2_vf);
+
+    /* coupling function*/
+    f_vf = pow(phi_vf,2.*q_vf)/pow(2.,q_vf)/pow(phi0_vf,2.*q_vf);
+
+   /* Auxiliar variable r_{Q} */
+    if (pba->has_cdm_vf == _FALSE_){
+      rQ_vf = -q_vf*QQ_vf*f_vf*pba->Omega0_cdm * pow(pba->H0,2)/p2_vf/pow(a,3)/pvecback[pba->index_bg_rho_vf];
+    }
+    else{ 
+      rQ_vf = -q_vf*QQ_vf*f_vf*pvecback[pba->index_bg_rho_cdm]/p2_vf/pvecback[pba->index_bg_rho_vf]/(beta_vf + QQ_vf*f_vf);
+    }
+
+
+    /* We need to write again \rho_{r} and \rho_{m} to define \Omega_{i} */    
+    rho_R = pvecback[pba->index_bg_rho_g];
+    if (pba->has_ur == _TRUE_) {
+      rho_R += pvecback[pba->index_bg_rho_ur];
+    }
+
+    Or_vf = rho_R/H/H;
+    Om_vf = (pvecback[pba->index_bg_rho_b] + pvecback[pba->index_bg_rho_cdm])/H/H;
+    O_vf  = 1.-Or_vf-Om_vf; 
+
+/* Auxiliar varianle \eps_{phi} = \rho_{DE}' /aH\rho_{DE} (derivative with respect to conformal time)*/
+    eps_vf = s_vf*(3.*(1.+rQ_vf)+(1.-rQ_vf)*(Or_vf-3.*O_vf))/(1.+s1_vf*rQ_vf+O_vf*pow(rQ_vf-1.,2.)*s_vf); 
+
+
+  /* Numerical solution for cdm */
+  if (pba->has_cdm_vf == _TRUE_) { 
+      dy[pba->index_bi_rho_cdm_vf] = -3.*y[pba->index_bi_rho_cdm_vf]+q_vf*QQ_vf*f_vf*eps_vf*y[pba->index_bi_rho_cdm_vf]/p2_vf/(beta_vf+QQ_vf*f_vf);    
+  }
+  /* Numerical solution for DE */
+    dy[pba->index_bi_rho_vf] = rho_vf*eps_vf;   
+  }
+  
 
   /** - solve second order growth equation \f$ [D''(\tau)=-aHD'(\tau)+3/2 a^2 \rho_M D(\tau) \f$
       written as \f$ dD/dloga = D' / (aH) \f$ and \f$ dD'/dloga = -D' + (3/2) (a/H) \rho_M D \f$ */
@@ -2830,47 +2958,6 @@ int background_derivs(
   }
 
 
-    /** - Compute vector field: \f$ \rho_{vf}'=\rho_{vf}\epsilon_{\phi} \f$
-        written as \f$ d\rho_{vf}/dlna = rho_{vf}' \f$  */
-
-
-  if (pba->has_vf == _TRUE_) { 
-
-    s_vf   = pba->vf_parameters[0];             //s
-    b2_vf  = pba->vf_parameters[1];            //b2    
-    P2_vf  = pba->vf_parameters[2];             //p
-//    q_vf   = pba->vf_parameters[3];             //q = 2P3
-    QQ_vf  = pba->vf_parameters[4];             //Q
-    p_vf  = P2_vf/s_vf;
-    phi0_vf = sqrt(2.0)*pow(pba->H0,1.0/P2_vf)*pow(3.0*pba->Omega0_vf,1.0/2.0/P2_vf);
-    P3_vf = (p_vf-1.+2.*P2_vf)/2.;
-    q_vf  = 2.*P3_vf;           //case q = 2P3        
-    s1_vf = (2.*q_vf-2.*P3_vf-1.)/p_vf;
-
-
-    rho_vf = y[pba->index_bi_rho_vf];
-    phi_vf = sqrt(2.)*pow(-3.*rho_vf/b2_vf,1./2./P2_vf);
-
-    f_vf = pow(phi_vf,2.*q_vf)/pow(2.,q_vf)/pow(phi0_vf,2.*q_vf);
-    rho_cdm_vf = QQ_vf*f_vf*pvecback[pba->index_bg_rho_cdm];   
-    rQ_vf = -q_vf*rho_cdm_vf/P2_vf/pvecback[pba->index_bg_rho_vf];
-    rho_M += rho_cdm_vf;  
-
-    rho_R = pvecback[pba->index_bg_rho_g];
-    if (pba->has_ur == _TRUE_) {
-      rho_R += pvecback[pba->index_bg_rho_ur];
-    }
-
-    Or_vf = rho_R/H/H;
-    Om_vf = rho_M/H/H;
-//    Oc_vf = rho_cdm_vf/H/H;    
-    O_vf  = 1.-Or_vf-Om_vf; 
-//    O_vf = rho_vf/H/H;
-    eps_vf = s_vf*(3.*(1.+rQ_vf)+(1.-rQ_vf)*(Or_vf-3.*O_vf))/(1.+s1_vf*rQ_vf+O_vf*pow(rQ_vf-1.,2.)*s_vf); 
-
-    dy[pba->index_bi_rho_vf] = rho_vf*eps_vf;  
-  
-  }
 
   return _SUCCESS_;
 

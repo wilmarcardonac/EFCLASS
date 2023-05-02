@@ -880,7 +880,7 @@ int input_needs_shooting_for_target(struct file_content * pfc,
   case Omega_dcdmdr:
   case omega_dcdmdr:
   case Omega_scf:
-  case Omega_vf:  
+  case Omega_vf:      /* Shooting for DE */ 
   case Omega_ini_dcdm:
   case omega_ini_dcdm:
     /* Check that Omega's or omega's are nonzero: */
@@ -1236,7 +1236,7 @@ int input_get_guess(double *xguess,
       break;
     case Omega_vf:
         xguess[index_guess] = ba.vf_parameters[ba.vf_tuning_index];
-        dxdy[index_guess] = -1.49254;
+        dxdy[index_guess] = -1.49254;    /* We choose that number making trial and error */
       break;
     case omega_ini_dcdm:
       Omega0_dcdmdr = 1./(ba.h*ba.h);
@@ -2309,8 +2309,8 @@ int input_read_parameters_species(struct file_content * pfc,
   /** Summary: */
 
   /** - Define local variables */
-  int flag1, flag2, flag3, flag4;  //vf
-  double param1, param2, param3, param4;  //vf
+  int flag1, flag2, flag3, flag4;  //vf_note: we add a new flag (flag4). 
+  double param1, param2, param3, param4;  //vf: we add a new param (param4).
   char string1[_ARGUMENT_LENGTH_MAX_];
   int fileentries;
   int N_ncdm=0, n, entries_read;
@@ -3141,7 +3141,7 @@ int input_read_parameters_species(struct file_content * pfc,
 
   /** 8) Dark energy
       Omega_0_lambda (cosmological constant), Omega0_fld (dark energy
-      fluid), Omega0_scf (scalar field) */
+      fluid), Omega0_scf (scalar field), Omega0_vf (vector field) */
   /* Read */
   class_call(parser_read_double(pfc,"Omega_Lambda",&param1,&flag1,errmsg),
              errmsg,
@@ -3162,6 +3162,9 @@ int input_read_parameters_species(struct file_content * pfc,
   class_test((flag4 == _FALSE_) && ((flag1 == _FALSE_)||(flag2 == _FALSE_)) && ((flag3 == _TRUE_) && (param3 < 0.)),
              errmsg,
              "You have entered 'Omega_scf' < 0 , so you have to specify both 'Omega_lambda' and 'Omega_fld'.");
+  class_test((flag4 == _TRUE_) && ((param1 > 0.)||(param2 >0.) || (param3 > 0. )),
+             errmsg,
+             "'Omega_Lambda', 'Omega_fld'', and 'Omega_scf'' must be left equals to zero if you want to run the vector field model.");  
   /* Complete set of parameters
      Case of (flag3 == _FALSE_) || (param3 >= 0.) means that either we have not
      read Omega_scf so we are ignoring it (unlike lambda and fld!) OR we have
@@ -3339,9 +3342,9 @@ int input_read_parameters_species(struct file_content * pfc,
   }
 
 
-  if (pba->Omega0_vf != 0.){
+  /** 8.c) If Omega vector field is different from 0 */
 
-  /** 8.c) If Omega vector field (VF) is different from 0 */
+  if (pba->Omega0_vf != 0.){
 
     /** 8.c.1) Additional VF parameters */
     /* Read */
@@ -3352,6 +3355,13 @@ int input_read_parameters_species(struct file_content * pfc,
                                            &flag1,
                                            errmsg),
                errmsg,errmsg);
+
+
+    class_read_double("vf_parameters_1",pba->vf_parameters_1);
+    class_read_double("vf_parameters_2",pba->vf_parameters_2);
+    class_read_double("vf_parameters_3",pba->vf_parameters_3);
+    class_read_double("vf_parameters_4",pba->vf_parameters_4);
+    class_read_double("vf_parameters_5",pba->vf_parameters_5);
 
 
     /** 8.b.2) VF tuning parameter */
@@ -3367,7 +3377,27 @@ int input_read_parameters_species(struct file_content * pfc,
     /* Read */
     class_read_double("vf_shooting_parameter",pba->vf_parameters[pba->vf_tuning_index]);
 
-}
+
+  /** 8.b.5) To solve a differential equation for CDM */
+    /* Read */
+    class_call(parser_read_string(pfc,
+                                  "num_sol_cdm_vf",
+                                  &string1,
+                                  &flag1,
+                                  errmsg),
+               errmsg,
+               errmsg);
+    /* Complete set of parameters */
+    if (flag1 == _TRUE_){
+      if (string_begins_with(string1,'y') || string_begins_with(string1,'Y')){
+        pba->has_cdm_vf = _TRUE_;
+      }
+      else {
+        pba->has_cdm_vf = _FALSE_;
+      }
+    }
+
+  }
 
   return _SUCCESS_;
 
@@ -5854,8 +5884,13 @@ int input_default_params(struct background *pba,
   /** 9.c.1) Potential parameters and initial conditions */
   pba->vf_parameters = NULL;
   pba->vf_parameters_size = 0;
-  /** 9.c.2) Initial conditions */
-  pba->phi_ini_vf = 1;               
+  pba->vf_parameters_1 = 0.0;
+  pba->vf_parameters_2 = 0.0;
+  pba->vf_parameters_3 = 0.0;
+  pba->vf_parameters_4 = 0.0;  
+ 
+  /** To solve cdm numerically (vf) */ 
+  pba->has_cdm_vf = _FALSE_;
 
   /**
    * Deafult to input_read_parameters_heating
