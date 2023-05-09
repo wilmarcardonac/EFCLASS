@@ -1372,6 +1372,9 @@ cdef class Class:
     def h(self):
         return self.ba.h
 
+    def Omega0_vf(self):
+        return self.ba.Omega0_vf
+
     def n_s(self):
         return self.pm.n_s
 
