@@ -112,8 +112,13 @@ cdef extern from "class.h":
         double Omega0_vf   
         double * vf_parameters
         int vf_tuning_index
-        short num_sol_cdm_vf         
-
+        short num_sol_cdm_vf
+        double * vf_parameters_1
+        double * vf_parameters_2
+        double * vf_parameters_3
+        double * vf_parameters_4
+        double * vf_parameters_5
+	
     cdef struct thermodynamics:
         ErrorMsg error_message
         int th_size
