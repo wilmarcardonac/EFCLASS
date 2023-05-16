@@ -2259,11 +2259,11 @@ int background_solve(
       printf("     -> Omega_vf = %g, wished %g\n",
              pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_rho_vf]/pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_rho_crit], pba->Omega0_vf);
 //      printf(" -> Vector field parameters: [s, p2, beta, Q, q] = \n");
-      printf("s  -> %.e \n",pba->vf_parameters_1);
-      printf("p2 -> %.e \n",pba->vf_parameters_2);
-      printf("Q  -> %.e \n",pba->vf_parameters_3);
-      printf("q  -> %.e \n",pba->vf_parameters_4);
-      printf("beta -> %.e \n",pba->vf_parameters_5);
+      printf("s  -> %.8e \n",pba->vf_parameters_1);
+      printf("p2 -> %.8e \n",pba->vf_parameters_2);
+      printf("Q  -> %.8e \n",pba->vf_parameters_3);
+      printf("q  -> %.8e \n",pba->vf_parameters_4);
+      printf("beta -> %.8e \n",pba->vf_parameters_5);
       printf(" -> Vector field initial conditions: [Z_ini, Q_ini, rho_vf_ini] = \n");
       printf("                    [");
       for (index_vf=0; index_vf<pba->vf_parameters_size-1; index_vf++) {

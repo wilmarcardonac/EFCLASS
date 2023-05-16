@@ -3362,8 +3362,9 @@ int input_read_parameters_species(struct file_content * pfc,
     class_read_double("vf_parameters_3",pba->vf_parameters_3);
     class_read_double("vf_parameters_4",pba->vf_parameters_4);
     class_read_double("vf_parameters_5",pba->vf_parameters_5);
-
-
+    // CODE ASSUMES q = 2*p3 :
+    pba->vf_parameters_4 = (pba->vf_parameters_2/pba->vf_parameters_1) - 1. + 2.*pba->vf_parameters_2;
+   
     /** 8.b.2) VF tuning parameter */
     /* Read */
     class_read_int("vf_tuning_index",pba->vf_tuning_index);
