@@ -3362,9 +3362,22 @@ int input_read_parameters_species(struct file_content * pfc,
     class_read_double("vf_parameters_3",pba->vf_parameters_3);
     class_read_double("vf_parameters_4",pba->vf_parameters_4);
     class_read_double("vf_parameters_5",pba->vf_parameters_5);
-    // CODE ASSUMES q = 2*p3 :
-    pba->vf_parameters_4 = (pba->vf_parameters_2/pba->vf_parameters_1) - 1. + 2.*pba->vf_parameters_2;
-   
+    // CODE ASSUMES q = 2*p3, (p3=0 DEFAULT VALUE WHEN s OR p2 ARE NOT PROVIDED, REGARDLESS Q VALUE)  :
+    if ((pba->vf_parameters_1 == -1.e10) && (pba->vf_parameters_2 != 1.e10)) {
+      class_test(pba->vf_parameters_2 == 0.5,errmsg,"IF s IS NOT GIVEN IN INPUT, PROVIDED p2 CANNOT BE 0.5");
+      pba->vf_parameters_1 = pba->vf_parameters_2/(1. - 2.*pba->vf_parameters_2);
+      pba->vf_parameters_4 = 0.0;
+    }
+    if ((pba->vf_parameters_1 != -1.e10) && (pba->vf_parameters_2 == 1.e10)) {
+      class_test(pba->vf_parameters_1 == -0.5,errmsg,"IF p2 IS NOT GIVEN IN INPUT, PROVIDED s CANNOT BE -0.5");
+      pba->vf_parameters_2 = pba->vf_parameters_1/(1. + 2.*pba->vf_parameters_1);
+      pba->vf_parameters_4 = 0.0;
+    }
+    if ((pba->vf_parameters_1 != -1.e10) && (pba->vf_parameters_2 != 1.e10)) {
+      pba->vf_parameters_4 = (pba->vf_parameters_2/pba->vf_parameters_1) - 1. + 2.*pba->vf_parameters_2;
+    }
+    class_test(((pba->vf_parameters_1 == -1.e10) && (pba->vf_parameters_2 == 1.e10)),errmsg,"NEITHER s NOR p2 WERE PROVIDED, MODIFY INI FILE AND GIVE AT LEAST ONE OF THEM");
+
     /** 8.b.2) VF tuning parameter */
     /* Read */
     class_read_int("vf_tuning_index",pba->vf_tuning_index);
@@ -5885,8 +5898,8 @@ int input_default_params(struct background *pba,
   /** 9.c.1) Potential parameters and initial conditions */
   pba->vf_parameters = NULL;
   pba->vf_parameters_size = 0;
-  pba->vf_parameters_1 = 0.0;
-  pba->vf_parameters_2 = 0.0;
+  pba->vf_parameters_1 = -1.e10;
+  pba->vf_parameters_2 = 1.e10;
   pba->vf_parameters_3 = 0.0;
   pba->vf_parameters_4 = 0.0;  
  
