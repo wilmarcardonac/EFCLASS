@@ -116,7 +116,7 @@ cdef extern from "class.h":
         double * vf_parameters_1
         double * vf_parameters_2
         double * vf_parameters_3
-        double * vf_parameters_4
+#        double * vf_parameters_4
         double * vf_parameters_5
 	
     cdef struct thermodynamics:

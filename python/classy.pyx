@@ -1375,21 +1375,6 @@ cdef class Class:
     def Omega0_vf(self):
         return self.ba.Omega0_vf
 
-#    def vf_parameters_1(self):
-#        return self.ba.vf_parameters_1
-
-#    def vf_parameters_2(self):
-#        return self.ba.vf_parameters_2
-
-#    def vf_parameters_3(self):
-#        return self.ba.vf_parameters_3
-
-#    def vf_parameters_4(self):
-#        return self.ba.vf_parameters_4
-
-#    def vf_parameters_5(self):
-#        return self.ba.vf_parameters_5
-
     def n_s(self):
         return self.pm.n_s
 
