@@ -3362,22 +3362,20 @@ int input_read_parameters_species(struct file_content * pfc,
     class_read_double("vf_parameters_3",pba->vf_parameters_3);
     class_read_double("vf_parameters_4",pba->vf_parameters_4);
     class_read_double("vf_parameters_5",pba->vf_parameters_5);
-    // CODE ASSUMES q = 2*p3, (p3=0 DEFAULT VALUE WHEN s OR p2 ARE NOT PROVIDED, REGARDLESS Q VALUE)  :
-    if ((pba->vf_parameters_1 == -1.e10) && (pba->vf_parameters_2 != 1.e10)) {
-      class_test(pba->vf_parameters_2 == 0.5,errmsg,"IF s IS NOT GIVEN IN INPUT, PROVIDED p2 CANNOT BE 0.5");
-      pba->vf_parameters_1 = pba->vf_parameters_2/(1. - 2.*pba->vf_parameters_2);
+    // CODE ASSUMES q = 1+2*p3-p2, (s=-1,p2=1 DEFAULT VALUES WHEN s OR p2 ARE NOT PROVIDED, REGARDLESS Q VALUE)  :
+    if (pba->vf_parameters_1 == -1.) {
+      class_test(pba->vf_parameters_2 == 0.,errmsg,"IF s IS NOT GIVEN IN INPUT, PROVIDED p2 CANNOT BE 0.");
       pba->vf_parameters_4 = 0.0;
     }
-    if ((pba->vf_parameters_1 != -1.e10) && (pba->vf_parameters_2 == 1.e10)) {
-      class_test(pba->vf_parameters_1 == -0.5,errmsg,"IF p2 IS NOT GIVEN IN INPUT, PROVIDED s CANNOT BE -0.5");
-      pba->vf_parameters_2 = pba->vf_parameters_1/(1. + 2.*pba->vf_parameters_1);
-      pba->vf_parameters_4 = 0.0;
+    if ( pba->vf_parameters_2 == 1.) {
+      class_test(pba->vf_parameters_1 == 0.,errmsg,"IF p2 IS NOT GIVEN IN INPUT, PROVIDED s CANNOT BE 0.");
+      pba->vf_parameters_4 = (1. + pba->vf_parameters_1)/pba->vf_parameters_1;
     }
-    if ((pba->vf_parameters_1 != -1.e10) && (pba->vf_parameters_2 != 1.e10)) {
+    if ((pba->vf_parameters_1 != -1.) && (pba->vf_parameters_2 != 1.)) {
       class_test(pba->vf_parameters_1 == 0.,errmsg,"s = 0 LEADS TO q INFINITY");
-      pba->vf_parameters_4 = (pba->vf_parameters_2/pba->vf_parameters_1) - 1. + 2.*pba->vf_parameters_2;
+      pba->vf_parameters_4 = (pba->vf_parameters_2/pba->vf_parameters_1)*(1. + pba->vf_parameters_1);
     }
-    class_test(((pba->vf_parameters_1 == -1.e10) && (pba->vf_parameters_2 == 1.e10)),errmsg,"NEITHER s NOR p2 WERE PROVIDED, MODIFY INI FILE AND GIVE AT LEAST ONE OF THEM");
+    class_test(((pba->vf_parameters_1 == -1.) && (pba->vf_parameters_2 == 1.)),errmsg,"NEITHER s NOR p2 WERE PROVIDED, MODIFY INI FILE AND GIVE AT LEAST ONE OF THEM");
 
     /** 8.b.2) VF tuning parameter */
     /* Read */
@@ -5899,8 +5897,8 @@ int input_default_params(struct background *pba,
   /** 9.c.1) Potential parameters and initial conditions */
   pba->vf_parameters = NULL;
   pba->vf_parameters_size = 0;
-  pba->vf_parameters_1 = -1.e10;
-  pba->vf_parameters_2 = 1.e10;
+  pba->vf_parameters_1 = -1.;
+  pba->vf_parameters_2 = 1.;
   pba->vf_parameters_3 = 0.0;
   pba->vf_parameters_4 = 0.0;  
  
