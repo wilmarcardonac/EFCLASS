@@ -3373,6 +3373,7 @@ int input_read_parameters_species(struct file_content * pfc,
     }
     if ((pba->vf_parameters_1 != -1.) && (pba->vf_parameters_2 != 1.)) {
       class_test(pba->vf_parameters_1 == 0.,errmsg,"s = 0 LEADS TO q INFINITY");
+      class_test(pba->vf_parameters_2 == 0.,errmsg,"p2 = 0 LEADS TO p = 0, THEN INFINITY");
       pba->vf_parameters_4 = (pba->vf_parameters_2/pba->vf_parameters_1)*(1. + pba->vf_parameters_1);
     }
     class_test(((pba->vf_parameters_1 == -1.) && (pba->vf_parameters_2 == 1.)),errmsg,"NEITHER s NOR p2 WERE PROVIDED, MODIFY INI FILE AND GIVE AT LEAST ONE OF THEM");
