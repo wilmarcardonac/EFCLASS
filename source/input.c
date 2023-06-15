@@ -935,11 +935,10 @@ int input_find_root(double *xzero,
 
   (*fevals)++;
   dx = 1.5*f1*dxdy;
-
   /** Then we do a linear hunt for the boundaries */
   /* Try fifteen times to go above and below the root (i.e. where shooting succeeds) */
   /* vf_notes: We changed the number of attempts. */
-  for (iter=1; iter<=10000; iter++){
+  for (iter=1; iter<=15; iter++){
     x2 = x1 - dx;
     /* Try three times to get a 'reasonable' value, i.e. no CLASS error */
     for (iter2=1; iter2 <= 3; iter2++) {
@@ -956,6 +955,7 @@ int input_find_root(double *xzero,
         class_stop(errmsg,errmsg);
       }
     }
+        
     if (f1*f2<0.0){
       /* Root has been bracketed */
       break;
@@ -963,7 +963,6 @@ int input_find_root(double *xzero,
     x1 = x2;
     f1 = f2;
   }
-
   /** Find root using Ridders method (Exchange for bisection if you are old-school) */
   class_call(input_fzero_ridder(input_fzerofun_1d,
                                 x1,
@@ -1236,7 +1235,7 @@ int input_get_guess(double *xguess,
       break;
     case Omega_vf:
         xguess[index_guess] = ba.vf_parameters[ba.vf_tuning_index];
-        dxdy[index_guess] = -1.49254;    /* We choose that number making trial and error */
+        dxdy[index_guess] = -1.;    /* We choose that number making trial and error */
       break;
     case omega_ini_dcdm:
       Omega0_dcdmdr = 1./(ba.h*ba.h);
@@ -3227,7 +3226,7 @@ int input_read_parameters_species(struct file_content * pfc,
     /* Fill up with vector field */
     pba->Omega0_vf = 1. - pba->Omega0_k - Omega_tot;
     if (input_verbose > 2){
-      printf(" -> matched budget equations by adjusting Omega_vf = %g\n",pba->Omega0_vf);
+      printf(" -> matched budget equations by adjusting Omega_vf = %.8e\n",pba->Omega0_vf);
     }
   }
 
@@ -3377,7 +3376,8 @@ int input_read_parameters_species(struct file_content * pfc,
       pba->vf_parameters_4 = (pba->vf_parameters_2/pba->vf_parameters_1)*(1. + pba->vf_parameters_1);
     }
     class_test(((pba->vf_parameters_1 == -1.) && (pba->vf_parameters_2 == 1.)),errmsg,"NEITHER s NOR p2 WERE PROVIDED, MODIFY INI FILE AND GIVE AT LEAST ONE OF THEM");
-
+    // HERE WE CORRECT BUDGET EQUATION FOR CURRENT VECTOR FIELD PARAMETER DENSITY (IF Q IS NOT ZERO)
+    pba->Omega0_vf = pba->Omega0_vf - pba->vf_parameters_3*pba->Omega0_cdm/pow(2.,pba->vf_parameters_4);
     /** 8.b.2) VF tuning parameter */
     /* Read */
     class_read_int("vf_tuning_index",pba->vf_tuning_index);

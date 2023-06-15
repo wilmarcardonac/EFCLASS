@@ -2256,9 +2256,8 @@ int background_solve(
 
     if (pba->has_vf == _TRUE_) {
       printf("    Vector field details:\n");
-      printf("     -> Omega_vf = %g, wished %g\n",
+      printf("     -> Omega_vf = %.8e, wished %.8e\n",
              pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_rho_vf]/pba->background_table[(pba->bt_size-1)*pba->bg_size+pba->index_bg_rho_crit], pba->Omega0_vf);
-//      printf(" -> Vector field parameters: [s, p2, beta, Q, q] = \n");
       printf("s  -> %.8e \n",pba->vf_parameters_1);
       printf("p2 -> %.8e \n",pba->vf_parameters_2);
       printf("Q  -> %.8e \n",pba->vf_parameters_3);
@@ -2267,9 +2266,9 @@ int background_solve(
       printf(" -> Vector field initial conditions: [Z_ini, Q_ini, rho_vf_ini] = \n");
       printf("                    [");
       for (index_vf=0; index_vf<pba->vf_parameters_size-1; index_vf++) {
-        printf("%.e, ",pba->vf_parameters[index_vf]);
+        printf("%.8e, ",pba->vf_parameters[index_vf]);
       }
-      printf("%.e]\n",pow(10.0,-pba->vf_parameters[pba->vf_parameters_size-1])*pow(ppr->a_ini_over_a_today_default,4.*pba->vf_parameters[0]));
+      printf("%.8e]\n",pow(10.0,-pba->vf_parameters[pba->vf_parameters_size-1])*pow(ppr->a_ini_over_a_today_default,4.*pba->vf_parameters[0]));
     } 
     if (pba->has_cdm_vf == _TRUE_) {
       printf(" ->Computing CDM numerically \n");
@@ -2483,7 +2482,7 @@ int background_initial_conditions(
    // - Fix initial value of \f$ \rho_{DE} \f$
   
  if (pba->has_vf == _TRUE_) {        
-    pvecback_integration[pba->index_bi_rho_vf] = pow(10.0,-pba->vf_parameters[pba->vf_parameters_size-1])*pow(a,4.*pba->vf_parameters_1); 
+   pvecback_integration[pba->index_bi_rho_vf] = pow(10.0,-pba->vf_parameters[pba->vf_parameters_size-1])*pow(a,4.*pba->vf_parameters_1); 
 
     class_test(!isfinite(pvecback_integration[pba->index_bi_rho_vf]) ||
                !isfinite(pvecback_integration[pba->index_bi_rho_vf]),
@@ -3153,7 +3152,7 @@ int background_output_budget(
     }
     if (pba->has_vf == _TRUE_) {
       class_print_species("Vector Field",vf);
-      budget_other+=pba->Omega0_vf;
+      budget_other+=pba->Omega0_vf + pba->vf_parameters_3*pba->Omega0_cdm/pow(2.,pba->vf_parameters_4);
     }  
     if (pba->has_curvature == _TRUE_) {
       class_print_species("Spatial Curvature",k);

@@ -87,7 +87,7 @@ class_precision_parameter(tol_shooting_deltaF,double,1.e-6)
 /**
  * Relative tolerance of root x during shooting (only 1D case)
  */
-class_precision_parameter(tol_shooting_deltax_rel,double,1.e-9)
+class_precision_parameter(tol_shooting_deltax_rel,double,1.e-10)
 /**
  * Tolerance on input of various fractions (e.g. f_idm)
  */
