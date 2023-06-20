@@ -3376,6 +3376,7 @@ int input_read_parameters_species(struct file_content * pfc,
       pba->vf_parameters_4 = (pba->vf_parameters_2/pba->vf_parameters_1)*(1. + pba->vf_parameters_1);
     }
     class_test(((pba->vf_parameters_1 == -1.) && (pba->vf_parameters_2 == 1.)),errmsg,"NEITHER s NOR p2 WERE PROVIDED, MODIFY INI FILE AND GIVE AT LEAST ONE OF THEM");
+    class_test(pba->vf_parameters_3 < -pow(2.,pba->vf_parameters_4),errmsg,"Q IS LESS THAN -2^q WHICH LEADS TO PRESENT NEGATIVE EFFECTIVE MATTER DENSITY");
     // HERE WE CORRECT BUDGET EQUATION FOR CURRENT VECTOR FIELD PARAMETER DENSITY (IF Q IS NOT ZERO)
     pba->Omega0_vf = pba->Omega0_vf - pba->vf_parameters_3*pba->Omega0_cdm/pow(2.,pba->vf_parameters_4);
     /** 8.b.2) VF tuning parameter */
