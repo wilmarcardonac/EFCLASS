@@ -4548,7 +4548,7 @@ int input_read_parameters_spectra(struct file_content * pfc,
         class_read_string("dNdz_evolution",ptr->nz_evo_file_name);
       }
     }
-
+    class_read_double("nc_bias_b0",ptr->nc_bias_b0);
   }
 
 
@@ -5733,6 +5733,7 @@ int input_default_params(struct background *pba,
   /** 2.c) Source number counts evolution */
   ptr->has_nz_evo_analytic = _FALSE_;
   ptr->has_nz_evo_file = _FALSE_;
+  ptr->nc_bias_b0 = 1.;
 
   /** 3) Power spectrum P(k) */
   /** 3.a) Maximum k in P(k) */

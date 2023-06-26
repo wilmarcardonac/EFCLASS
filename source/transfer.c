@@ -4786,7 +4786,7 @@ int transfer_precompute_selection(
         */
 
         if (_index_tt_in_range_(ptr->index_tt_density, ppt->selection_num, ppt->has_nc_density))
-          rescaling = ptr->selection_bias[bin]*selection[index_tau];
+          rescaling = ptr->selection_bias[bin]*selection[index_tau]*ptr->nc_bias_b0;
 
         /* redshift space distortion source = - [- (dz/dtau) W(z)] * (k/H) * theta(k,tau) */
 
