@@ -6862,7 +6862,8 @@ int perturbations_total_stress_energy(
   double R1_vf, R2_vf, R3_vf; 
   double s_vf, s1_vf, b2_vf, p_vf, q_vf, QQ_vf, p2_vf, p3_vf;   
   double rho_r, rho_g, rho_ur, rho_b, rho_cdm, rho_plus_p_theta_r; 
-
+  double rho_plus_p_theta_b, rho_plus_p_theta_cdm;
+  double rho_plus_p_theta_ncdm_vf = 0.;
 
   /** Variables used for FLD and PPF */
   double c_gamma_k_H_square;
@@ -7009,6 +7010,9 @@ int perturbations_total_stress_energy(
       + ppw->pvecback[pba->index_bg_rho_b]*delta_p_b_over_rho_b; // contribution to total perturbed stress-energy
     ppw->rho_plus_p_tot = 4./3. * ppw->pvecback[pba->index_bg_rho_g] + ppw->pvecback[pba->index_bg_rho_b];
 
+    rho_plus_p_theta_r = 4./3.*ppw->pvecback[pba->index_bg_rho_g]*theta_g;               // vf
+    rho_plus_p_theta_b = ppw->pvecback[pba->index_bg_rho_b]*y[ppw->pv->index_pt_theta_b]; // vf
+
     if (ppt->has_source_delta_m == _TRUE_) {
       delta_rho_m = ppw->pvecback[pba->index_bg_rho_b]*y[ppw->pv->index_pt_delta_b]; // contribution to delta rho_matter
       rho_m = ppw->pvecback[pba->index_bg_rho_b];
@@ -7022,9 +7026,10 @@ int perturbations_total_stress_energy(
     /* cdm contribution */ 
     if (pba->has_cdm == _TRUE_) {
       ppw->delta_rho += ppw->pvecback[pba->index_bg_rho_cdm]*y[ppw->pv->index_pt_delta_cdm]; // contribution to total perturbed stress-energy
-      if (ppt->gauge == newtonian)
+      if (ppt->gauge == newtonian){
         ppw->rho_plus_p_theta = ppw->rho_plus_p_theta + ppw->pvecback[pba->index_bg_rho_cdm]*y[ppw->pv->index_pt_theta_cdm]; // contribution to total perturbed stress-energy
-
+        rho_plus_p_theta_cdm = ppw->pvecback[pba->index_bg_rho_cdm]*y[ppw->pv->index_pt_theta_cdm];  // vf 
+      }
       ppw->rho_plus_p_tot += ppw->pvecback[pba->index_bg_rho_cdm];
 
       if (ppt->has_source_delta_m == _TRUE_) {
@@ -7097,6 +7102,7 @@ int perturbations_total_stress_energy(
       ppw->delta_p += 1./3.*ppw->pvecback[pba->index_bg_rho_ur]*delta_ur;
 
       ppw->rho_plus_p_tot += 4./3. * ppw->pvecback[pba->index_bg_rho_ur];
+      rho_plus_p_theta_r  +=  4./3. * ppw->pvecback[pba->index_bg_rho_ur]*theta_ur;  //vf
     }
 
     /* interacting dark radiation */
@@ -7283,7 +7289,16 @@ int perturbations_total_stress_energy(
       Omega_vf = rho_vf/(rho_g+rho_ur+rho_b+rho_cdm+rho_vf);
 
 
-      rho_plus_p_theta_r =  4./3.*ppw->pvecback[pba->index_bg_rho_g]*theta_g + 4./3.*ppw->pvecback[pba->index_bg_rho_ur]*theta_ur;
+      if (pba->has_ncdm == _TRUE_) {
+        for (n_ncdm=0; n_ncdm < pba->N_ncdm; n_ncdm++){
+          rho_plus_p_theta_ncdm_vf += (ppw->pvecback[pba->index_bg_rho_ncdm1+n_ncdm]+ppw->pvecback[pba->index_bg_p_ncdm1+n_ncdm])
+            *ppw->theta_ncdm[n_ncdm];           
+        }
+      }
+      else {
+       rho_plus_p_theta_ncdm_vf = 0.; 
+      }
+
 
       Q_vf = y[ppw->pv->index_pt_Q_vf];
       Z_vf = y[ppw->pv->index_pt_Z_vf];    
@@ -7292,8 +7307,7 @@ int perturbations_total_stress_energy(
 
        psi = y[ppw->pv->index_pt_phi] - 4.5 * (a2/k/k) * ppw->rho_plus_p_shear;    
 
-
-       rho_plus_p_theta_vf  = (k2*R3_vf*rho_vf*Q_vf/3./a_prime_over_a - s_vf*R2_vf*(rho_plus_p_theta_r + rho_plus_p_theta_m))/(1.+s_vf*R2_vf);
+       rho_plus_p_theta_vf  = (k2*R3_vf*rho_vf*Q_vf/3./a_prime_over_a - s_vf*R2_vf*(rho_plus_p_theta_r + rho_plus_p_theta_cdm + rho_plus_p_theta_b + rho_plus_p_theta_ncdm_vf))/(1.+s_vf*R2_vf);
        rho_plus_p_theta_vf += 2.*k2*s_vf*R3_vf*rQ_vf*rho_vf*y[ppw->pv->index_pt_delta_cdm]/3./a_prime_over_a/(1.+s_vf*R2_vf);
 
 
@@ -7590,7 +7604,7 @@ int perturbations_sources(
   int switch_isw = 1;
 
 
-  double theta_g, theta_ur;  
+  double theta_g, theta_ur, rho_plus_p_theta_ncdm_vf=0.;  
   double delta_vf, theta_vf, Z_vf, Q_vf; 
   double phi_vf, rho_vf, w_vf;
   double rQ_vf, chi_vf, H;
@@ -8095,7 +8109,7 @@ int perturbations_sources(
     if (ppt->has_source_theta_b == _TRUE_) {
       _set_source_(ppt->index_tp_theta_b) = y[ppw->pv->index_pt_theta_b]
         + theta_shift; // N-body gauge correction
-        theta_b = y[ppw->pv->index_pt_theta_b];    //vf
+      //        theta_b = y[ppw->pv->index_pt_theta_b];    //vf
     }
 
 // vf
@@ -8173,6 +8187,7 @@ int perturbations_sources(
       for (index_tp = ppt->index_tp_theta_ncdm1; index_tp < ppt->index_tp_theta_ncdm1+pba->N_ncdm; index_tp++) {
         _set_source_(index_tp) = ppw->theta_ncdm[index_tp - ppt->index_tp_theta_ncdm1]
           + theta_shift; // N-body gauge correction
+	rho_plus_p_theta_ncdm_vf += (ppw->pvecback[pba->index_bg_rho_ncdm1+index_tp]+ppw->pvecback[pba->index_bg_p_ncdm1+index_tp])*ppw->theta_ncdm[index_tp - ppt->index_tp_theta_ncdm1]; //vf          
       }
     }
 
@@ -8219,8 +8234,9 @@ int perturbations_sources(
        theta_vf  = k*k*Q_vf*R3_vf/3./a_prime_over_a/(1.+s_vf*R2_vf)/(1.+w_vf);
        theta_vf += -4.*s_vf*R2_vf*rho_g*theta_g/3./rho_vf/(1.+s_vf*R2_vf)/(1.+w_vf);
        theta_vf += -4.*s_vf*R2_vf*rho_ur*theta_ur/3./rho_vf/(1.+s_vf*R2_vf)/(1.+w_vf);
-       theta_vf += -s_vf*R2_vf*rho_b*theta_b/rho_vf/(1.+s_vf*R2_vf)/(1.+w_vf);
+       theta_vf += -s_vf*R2_vf*rho_b*y[ppw->pv->index_pt_theta_b]/rho_vf/(1.+s_vf*R2_vf)/(1.+w_vf);
        theta_vf += -s_vf*R2_vf*rho_cdm*y[ppw->pv->index_pt_theta_cdm]/rho_vf/(1.+s_vf*R2_vf)/(1.+w_vf);
+       theta_vf += -s_vf*R2_vf*rho_plus_p_theta_ncdm_vf/rho_vf/(1.+s_vf*R2_vf)/(1.+w_vf);
        theta_vf += 2.*k*k*s_vf*R3_vf*rQ_vf*y[ppw->pv->index_pt_delta_cdm]/3./a_prime_over_a/(1.+s_vf*R2_vf)/(1+w_vf); 
        _set_source_(ppt->index_tp_theta_vf) = theta_vf + theta_shift; // N-body gauge correction 
       }      
@@ -8337,6 +8353,7 @@ int perturbations_print_variables(double tau,
 
   /** - vector field sector begins */
   double delta_vf=0., theta_vf=0., Z_vf=0., Q_vf=0.;
+  double rho_plus_p_theta_ncdm_vf = 0.;  
   double rho_vf=0., w_vf=0., rQ_vf=0.;  
   double R1_vf=0, R2_vf=0, R3_vf=0;
   double s_vf, s1_vf, p_vf, q_vf, QQ_vf, p2_vf, p3_vf;   
@@ -8556,6 +8573,7 @@ int perturbations_print_variables(double tau,
           delta_ncdm[n_ncdm] = y[idx];
           theta_ncdm[n_ncdm] = y[idx+1];
           shear_ncdm[n_ncdm] = y[idx+2];
+          rho_plus_p_theta_ncdm_vf += (rho_ncdm_bg+p_ncdm_bg)*theta_ncdm[n_ncdm];      // vf    
           //This is the adiabatic sound speed:
           delta_p_over_delta_rho_ncdm[n_ncdm] = w_ncdm*(1.0-1.0/(3.0+3.0*w_ncdm)*(3.0*w_ncdm-2.0+pseudo_p_ncdm/p_ncdm_bg));
           idx += ppw->pv->l_max_ncdm[n_ncdm]+1;
@@ -8596,7 +8614,7 @@ int perturbations_print_variables(double tau,
           shear_ncdm[n_ncdm] = rho_plus_p_shear_ncdm/
             (ppw->pvecback[pba->index_bg_rho_ncdm1+n_ncdm]+ppw->pvecback[pba->index_bg_p_ncdm1+n_ncdm]);
           delta_p_over_delta_rho_ncdm[n_ncdm] = delta_p_ncdm/rho_delta_ncdm;
-
+          rho_plus_p_theta_ncdm_vf += rho_plus_p_theta_ncdm;   // vf
         }
       }
     }
@@ -8676,6 +8694,7 @@ int perturbations_print_variables(double tau,
        theta_vf += -4.*s_vf*R2_vf*rho_ur*theta_ur/3./rho_vf/(1.+s_vf*R2_vf)/(1.+w_vf);
        theta_vf += -s_vf*R2_vf*rho_b*theta_b/rho_vf/(1.+s_vf*R2_vf)/(1.+w_vf);
        theta_vf += -s_vf*R2_vf*rho_cdm*theta_cdm/rho_vf/(1.+s_vf*R2_vf)/(1.+w_vf);
+       theta_vf += -s_vf*R2_vf*rho_plus_p_theta_ncdm_vf/rho_vf/(1.+s_vf*R2_vf)/(1.+w_vf);
        theta_vf += 2.*k*k*s_vf*R3_vf*rQ_vf*y[ppw->pv->index_pt_delta_cdm]/3./a/H/(1.+s_vf*R2_vf)/(1+w_vf); 
 
        delta_vf = Z_vf - 3.*a*H*(1.+w_vf)*theta_vf/k/k;

@@ -415,7 +415,8 @@ int background_functions(
   double Or_vf, Om_vf, O_vf, Or_dot_vf, O_dot_vf;
   /* Vector field parameters*/
   double s_vf, s1_vf, b2_vf, p_vf, q_vf, QQ_vf, p2_vf, p3_vf, phi0_vf, beta_vf;
-
+  /* ncdm parametesrs to use in DE */
+  double O_ncdm_vf = 0., P_ncdm_vf = 0., dP_ncdm_vf = 0., dp_ncdm_vf = 0.;  
 
   /* Since we only know a_prime_over_a after we have rho_tot,
      it is not possible to simply sum up p_tot_prime directly.
@@ -671,13 +672,25 @@ int background_functions(
 
   if (pba->has_vf == _TRUE_){
 
-    Or_vf = rho_r/H/H;  // Omega_{r}
-    Om_vf = rho_m/H/H;  // Omega_{m}
-    O_vf  = 1.-Or_vf-Om_vf; //Omega_{DE} 
+    Or_vf = (pvecback[pba->index_bg_rho_g]+pvecback[pba->index_bg_rho_ur])/H/H;  // \Omega_{g} + \Omega_{ur}
+    Om_vf = (pvecback[pba->index_bg_rho_b]+pvecback[pba->index_bg_rho_cdm])/H/H;  // Omega_{m}
+
+    if (pba->has_ncdm == _TRUE_){
+    /* Loop over species: */
+       for (n_ncdm=0; n_ncdm<pba->N_ncdm; n_ncdm++) {
+          O_ncdm_vf += pvecback[pba->index_bg_rho_ncdm1+n_ncdm]/H/H;       // \Omega_{ncdm}
+          P_ncdm_vf += pvecback[pba->index_bg_p_ncdm1+n_ncdm]/H/H;        // P_{ncdm} = p_ncdm /H/H
+       }
+    }
+    else{
+        O_ncdm_vf  = 0.;                    
+        P_ncdm_vf  = 0.;                      
+    }
+
+    O_vf  = 1.-Or_vf-Om_vf-O_ncdm_vf;     //Omega_{DE} 
 
    /* Auxiliary variable named \epsilon_{\phi} = \frac{\rho_{DE}'}{aH\rho_{DE}} */ 
-    eps_vf = s_vf*(3.*(1.+rQ_vf)+(1.-rQ_vf)*(Or_vf-3.*O_vf))/(1.+s1_vf*rQ_vf+O_vf*pow(1.-rQ_vf,2.)*s_vf); 
-
+    eps_vf = s_vf*(3.*(1.+rQ_vf)+(1.-rQ_vf)*(Or_vf-3.*O_vf+3.*P_ncdm_vf))/(1.+s1_vf*rQ_vf+O_vf*pow(1.-rQ_vf,2.)*s_vf); 
     /* Dark energy equation of state */
     w_vf = -1. + eps_vf*(rQ_vf-1.)/3.;
 
@@ -729,10 +742,19 @@ int background_functions(
     Or_dot_vf = -2.*Or_vf*H*(2.+h_vf);      // \dot{\Omega_{r}}
     O_dot_vf  = O_vf*H*(eps_vf-2.*h_vf);    // \dot{\Omega_{vf}}
 
+    if (pba->has_ncdm == _TRUE_){
+      for (n_ncdm=0; n_ncdm<pba->N_ncdm; n_ncdm++) {
+        dp_ncdm_vf += (pvecback[pba->index_bg_pseudo_p_ncdm1+n_ncdm]-5.*pvecback[pba->index_bg_p_ncdm1+n_ncdm])*H;       // dp_ncdm_dt = dp_ncdm_dloga*H = (pseudo_p_ncdm - 5*p_ncdm)*H,  t is the cosmic time */
+      }   
+        dP_ncdm_vf = dp_ncdm_vf/H - 2.*H*h_vf*P_ncdm_vf;     // dP_ncdm_vf/dt = (dp_ncdm/dt)/H/H - 2*H*h*P_ncdm
+    }
+    else{
+        dP_ncdm_vf = 0.;     // dP_ncdm/dt,  
+    }
+    
     /* derivative of the auxiliar variable \epsilon_{\phi} */ 
-    eps_dot_vf  = s_vf*(rQ_dot_vf*(3.-Or_vf+3.*O_vf)+(1.-rQ_vf)*(Or_dot_vf-3.*O_dot_vf))/A_vf;
+    eps_dot_vf  = s_vf*(rQ_dot_vf*(3.-Or_vf+3.*O_vf-3.*P_ncdm_vf)+(1.-rQ_vf)*(Or_dot_vf-3.*O_dot_vf+3.*dP_ncdm_vf))/A_vf;
     eps_dot_vf += -eps_vf*(rQ_dot_vf*(s1_vf+2.*s_vf*O_vf*(rQ_vf-1.))+O_dot_vf*s_vf*pow(rQ_vf-1.,2.))/A_vf;   //\dot{\epsilon_{\phi}}
-
     /* Derivative of the dark energy equation of states */
     w_dot_vf = (eps_dot_vf*(rQ_vf-1.) + rQ_dot_vf*eps_vf)/3.;
 
@@ -2828,7 +2850,8 @@ int background_derivs(
   double rQ_vf, rho_cdm_vf, f_vf;
   double s_vf, s1_vf, p_vf, p2_vf, p3_vf, q_vf, QQ_vf, phi0_vf, b2_vf, beta_vf;
   double Or_vf, Om_vf, Oc_vf, O_vf, Or_dot_vf, O_dot_vf;
-
+  double O_ncdm_vf, P_ncdm_vf;
+  
   pbpaw = parameters_and_workspace;
   pba =  pbpaw->pba;
   pvecback = pbpaw->pvecback;
@@ -2906,11 +2929,20 @@ int background_derivs(
 
     Or_vf = rho_R/H/H;
     Om_vf = (pvecback[pba->index_bg_rho_b] + pvecback[pba->index_bg_rho_cdm])/H/H;
-    O_vf  = 1.-Or_vf-Om_vf; 
+
+    if (pba->has_ncdm == _TRUE_) {
+      O_ncdm_vf =  pvecback[pba->index_bg_rho_ncdm1]/H/H;
+      P_ncdm_vf =  pvecback[pba->index_bg_p_ncdm1]/H/H;
+    }
+    else {
+      O_ncdm_vf = 0.;
+      P_ncdm_vf = 0.;      
+    }
+
+    O_vf  = 1.-Or_vf-Om_vf-O_ncdm_vf; 
 
 /* Auxiliar varianle \eps_{phi} = \rho_{DE}' /aH\rho_{DE} (derivative with respect to conformal time)*/
-    eps_vf = s_vf*(3.*(1.+rQ_vf)+(1.-rQ_vf)*(Or_vf-3.*O_vf))/(1.+s1_vf*rQ_vf+O_vf*pow(rQ_vf-1.,2.)*s_vf); 
-
+    eps_vf = s_vf*(3.*(1.+rQ_vf)+(1.-rQ_vf)*(Or_vf-3.*O_vf+3.*P_ncdm_vf))/(1.+s1_vf*rQ_vf+O_vf*pow(rQ_vf-1.,2.)*s_vf); 
 
   /* Numerical solution for cdm */
   if (pba->has_cdm_vf == _TRUE_) { 
